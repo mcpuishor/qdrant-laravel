@@ -18,7 +18,7 @@ composer require mcpuishor/qdrant-laravel
 
 ### 2. Publish the Configuration File
 ```sh
-php artisan vendor:publish --tag=qdrant-config
+php artisan vendor:publish --tag=qdrant-laravel-config
 ```
 This will create a `config/qdrant.php` file where you can set your Qdrant connections and defaults.
 
