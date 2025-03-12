@@ -1,4 +1,4 @@
-# Laravel Qdrant Package
+# Qdrant for Laravel
 
 ## Introduction
 This package provides an elegant, fluent interface for interacting with the [Qdrant Vector Database](https://qdrant.tech/) in Laravel. It supports:
