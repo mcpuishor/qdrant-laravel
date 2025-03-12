@@ -1,0 +1,47 @@
+{
+    "name": "mcpuishor/qdrant-laravel",
+    "type": "library",
+    "description": "A fluent package to interact with Qdrant Vector Database",
+    "keywords": ["laravel", "qdrant", "vector database"],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Robert Tudor",
+            "email": "eu@robert-tudor.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2|^8.3",
+        "illuminate/support": "^11.0|^12.0",
+        "guzzlehttp/guzzle": "^7.8.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0",
+        "phpunit/phpunit": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Mcpuishor\\QdrantLaravel\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Mcpuishor\\QdrantLaravel\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Mcpuishor\\QdrantLaravel\\QdrantServiceProvider"
+            ],
+            "aliases": {
+                "QdrantLaravel": "Mcpuishor\\QdrantLaravel\\Facades\\Qdrant"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
