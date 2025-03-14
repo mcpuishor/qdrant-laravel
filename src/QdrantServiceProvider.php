@@ -8,7 +8,11 @@ class QdrantServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton(QdrantClient::class, function ($app) {
-            return new QdrantClient(config('qdrant-laravel'));
+            return new QdrantClient(config('qdrant-laravel.default'));
+        });
+
+        $this->app->singleton('qdrant', function ($app) {
+            return new QdrantClient(config('qdrant-laravel.default'));
         });
 
         $this->mergeConfigFrom(__DIR__.'/../config/qdrant-laravel.php', 'qdrant-laravel');

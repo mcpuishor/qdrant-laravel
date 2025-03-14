@@ -22,68 +22,42 @@ class QdrantQueryBuilder
         $this->collection = $collection;
     }
 
-    public function where(string $field, string $operator, mixed $value): static
+    public function getPoints(int|string|array $ids, bool $withPayload = true, bool $withVector=false): array
     {
-        $this->filters[] = compact('field', 'operator', 'value');
-        return $this;
+       if (is_array($ids)) {
+           return $this->getPointsById($ids, $withPayload, $withVector);
+       }
+
+       return $this->find($ids);
     }
 
-    public function limit(int $value): static
+    public function getPointsById(array $ids, bool $withPayload = true, bool $withVector=false): array
     {
-        $this->limit = $value;
-        return $this;
+        return $this->client
+            ->request(
+                method: 'POST',
+                uri: "/collections/{$this->collection}/points",
+                options: [
+                    'json' => [
+                        'ids' => $ids,
+                        'with_payload' => $withPayload,
+                        'with_vector' => $withVector,
+                    ],
+                ]
+            );
     }
 
-    public function orderBy(string $field, string $direction = 'asc'): static
+    public function find(int $id): array
     {
-        $this->sort[] = compact('field', 'direction');
-        return $this;
-    }
-
-    public function searchVector(array $vector): static
-    {
-        $this->vector = $vector;
-        return $this;
-    }
-
-    public function get(): Collection
-    {
-        $query = [
-            'filter' => $this->filters,
-            'limit'  => $this->limit,
-            'sort'   => $this->sort,
-        ];
-
-        if ($this->vector) {
-            $query['vector'] = $this->vector;
-        }
-
-        $response = $this->client->request('POST', "/collections/{$this->collection}/points/search", [
-            'json' => $query
-        ]);
-
-        return collect($response['result'] ?? []);
-    }
-
-    public function count(): int
-    {
-        $query = ['filter' => $this->filters];
-
-        $response = $this->client->request('POST', "/collections/{$this->collection}/points/count", [
-            'json' => $query
-        ]);
-
-        return $response['result']['count'] ?? 0;
+        return $this->client
+            ->request(
+                method: 'GET',
+                uri: "/collections/{$this->collection}/points/{$id}"
+            );
     }
 
     public function delete(): bool
     {
-        $query = ['filter' => $this->filters];
 
-        $response = $this->client->request('POST', "/collections/{$this->collection}/points/delete", [
-            'json' => $query
-        ]);
-
-        return isset($response['status']) && $response['status'] === 'ok';
     }
 }
