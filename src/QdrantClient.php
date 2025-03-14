@@ -13,8 +13,10 @@ class QdrantClient
     protected string $endpoint;
     protected ?string $apiKey;
 
-    public function __construct(array $config, string $connection = null)
+    public function __construct(string $connection = null)
     {
+        $config = config('qdrant-laravel');
+
         $connections = $config['connections'] ?? [];
         $connection = $connection ?? ($config['default'] ?? 'main');
 
@@ -27,8 +29,16 @@ class QdrantClient
         $this->apiKey = $settings['api_key'] ?? null;
 
         $this->httpClient = new Client([
-            'headers' => $this->apiKey ? ['Authorization' => "Bearer {$this->apiKey}"] : []
+            'headers' => array_merge(
+                $this->apiKey ? ['Api-key' => $this->apiKey ] : [],
+                ['Content-Type' => 'application/json']
+            ),
         ]);
+    }
+
+    public function get(): self
+    {
+        return $this;
     }
 
     public function collection(string $name): QdrantQueryBuilder
@@ -39,6 +49,7 @@ class QdrantClient
     public function request(string $method, string $uri, array $options = []): array
     {
         $response = $this->httpClient->request($method, $this->endpoint . $uri, $options);
+
         return json_decode($response->getBody()->getContents(), true);
     }
 }
