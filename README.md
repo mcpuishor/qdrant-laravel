@@ -20,7 +20,7 @@ composer require mcpuishor/qdrant-laravel
 ```sh
 php artisan vendor:publish --tag=qdrant-laravel-config
 ```
-This will create a `config/qdrant.php` file where you can set your Qdrant connections and defaults.
+This will create a `config/qdrant-laravel.php` file where you can set your Qdrant connections and defaults.
 
 ### 3. Set Up Your `.env` File
 Modify your `.env` file with your Qdrant host details:
@@ -33,7 +33,7 @@ QDRANT_DEFAULT_DISTANCE_METRIC=cosine
 ```
 
 ## Configuration
-The `config/qdrant.php` file allows multiple connections:
+The `config/qdrant-laravel.php` file allows multiple connections:
 ```php
 return [
     'default' => env('QDRANT_DEFAULT', 'main'),
@@ -90,7 +90,42 @@ $deleted = Qdrant::collection('plants')
 
 ## Schema Management (Migrations)
 
-### Creating a Collection with Indexes
+### Creating a new collection using the default connection
+
+```php
+use \Mcpuishor\QdrantLaravel\QdrantSchema;
+use \Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
+
+$collection = QdrantSchema::make()
+                ->create(
+                   name: "new_collection",
+                   vector: [
+                        'size' => 128,
+                        'distance' => DistanceMetric::COSINE
+                   ]
+                );
+```
+### Creating a new collection using a different connection 
+When the server connection is different from teh default one, the 
+connection must be specified when creating the collection: 
+
+```php
+use \Mcpuishor\QdrantLaravel\QdrantSchema;
+use \Mcpuishor\QdrantLaravel\QdrantClient;
+use \Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
+
+$collection = QdrantSchema::make( new \Mcpuishor\QdrantLaravel\QdrantClient('backup') )
+                ->create(
+                   name: "new_collection",
+                   vector: [
+                        'size' => 128,
+                        'distance' => DistanceMetric::COSINE
+                   ]
+                );
+```
+
+## Artisan commands
+### Creating a Collection with indexes
 ```sh
 php artisan qdrant:migrate --collection=plants --vector-size=256 --distance-metric=euclidean --indexes='{"species":"text","age":"integer"}'
 ```
