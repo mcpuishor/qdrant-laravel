@@ -2,7 +2,11 @@
     "name": "mcpuishor/qdrant-laravel",
     "type": "library",
     "description": "A fluent package to interact with Qdrant Vector Database",
-    "keywords": ["laravel", "qdrant", "vector database"],
+    "keywords": [
+        "laravel",
+        "qdrant",
+        "vector database"
+    ],
     "minimum-stability": "dev",
     "prefer-stable": true,
     "license": "MIT",
@@ -19,7 +23,9 @@
     },
     "require-dev": {
         "orchestra/testbench": "^9.0",
-        "phpunit/phpunit": "^10.0"
+        "phpunit/phpunit": "^10.0",
+        "pestphp/pest": "^3.7.0",
+        "pestphp/pest-plugin-laravel": "*"
     },
     "autoload": {
         "psr-4": {
