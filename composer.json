@@ -24,7 +24,8 @@
     "require-dev": {
         "orchestra/testbench": "^9.0",
         "phpunit/phpunit": "^11.0",
-        "pestphp/pest": "^3.7.0"
+        "pestphp/pest": "^3.7.0",
+        "pestphp/pest-plugin-laravel": "*"
     },
     "autoload": {
         "psr-4": {
@@ -47,6 +48,10 @@
         }
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+
     }
 }
