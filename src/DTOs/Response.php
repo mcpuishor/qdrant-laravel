@@ -31,17 +31,3 @@ readonly class Response
     }
 
 }
-
-//{
-//    "usage": {
-//    "cpu": 1,
-//    "io_read": 1,
-//    "io_write": 1
-//  },
-//  "time": 0.002,
-//  "status": "ok",
-//  "result": {
-//    "status": "acknowledged",
-//    "operation_id": 1
-//  }
-//}
