@@ -37,7 +37,7 @@
                 "Mcpuishor\\QdrantLaravel\\QdrantServiceProvider"
             ],
             "aliases": {
-                "QdrantLaravel": "Mcpuishor\\QdrantLaravel\\Facades\\Qdrant"
+                "QdrantLaravel": "Client"
             }
         }
     },

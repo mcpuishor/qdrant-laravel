@@ -1,0 +1,57 @@
+<?php
+namespace Mcpuishor\QdrantLaravel;
+
+use GuzzleHttp\Client;
+use Illuminate\Support\Traits\Macroable;
+use InvalidArgumentException;
+use Mcpuishor\QdrantLaravel\DTOs\Response;
+
+class QdrantTransport
+{
+    use Macroable;
+
+    protected Client $httpClient;
+    protected string $endpoint;
+    protected ?string $apiKey;
+
+    public function __construct(string $connection = null)
+    {
+        $config = config('qdrant-laravel');
+
+        $connections = $config['connections'] ?? [];
+        $connection = $connection ?? ($config['default'] ?? 'main');
+
+        if (!isset($connections[$connection])) {
+            throw new InvalidArgumentException("Qdrant connection [$connection] not defined.");
+        }
+
+        $settings = $connections[$connection];
+        $this->endpoint = $settings['host'];
+        $this->apiKey = $settings['api_key'] ?? null;
+
+        $this->httpClient = new Client([
+            'headers' => array_merge(
+                $this->apiKey ? ['Api-key' => $this->apiKey ] : [],
+                ['Content-Type' => 'application/json']
+            ),
+        ]);
+    }
+
+    public function get(): self
+    {
+        return $this;
+    }
+
+    public function collection(string $name): QdrantClient
+    {
+        return new QdrantClient($this, $name);
+    }
+
+    public function request(string $method, string $uri, array $options = []): Response
+    {
+
+        $response = $this->httpClient->request($method, $this->endpoint . $uri, $options);
+
+        return new Response( json_decode($response->getBody()->getContents(), true) );
+    }
+}

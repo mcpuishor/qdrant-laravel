@@ -13,17 +13,15 @@ class QdrantSchema
 {
     use Macroable;
 
-    protected QdrantClient $client;
+    public function __construct(
+        protected QdrantTransport $transport
+    ){}
 
-    public function __construct(QdrantClient $client)
+    static public function make(?QdrantTransport $transport = null): self
     {
-        $this->client = $client;
+        return new static($transport ?? app(QdrantTransport::class));
     }
 
-    static public function make(?QdrantClient $client = null): self
-    {
-        return new static($client ?? app(QdrantClient::class));
-    }
     /**
      * @throws FailedToCreateCollectionException
      */
@@ -40,7 +38,7 @@ class QdrantSchema
         }
 
         try {
-            $result =  $this->client
+            $response =  $this->transport
                         ->request(
                             'PUT', "/collections/{$name}",
                              $vectors + $options
@@ -50,48 +48,66 @@ class QdrantSchema
             throw new FailedToCreateCollectionException($error->status->error, $e->getCode());
         }
 
-        if (!isset($result['status']) || $result['status'] !== 'ok') {
-            throw new FailedToCreateCollectionException( $result );
+        if (!$response->isOK()) {
+            throw new FailedToCreateCollectionException( $response->result() );
         }
 
-        return  $result;
-    }
-
-    public function exists(string $name): bool
-    {
-        $result = $this->client->request('GET', "/collections/{$name}/exists");
-
-        return $result['result']['exists'];
-    }
-
-    public function update(string $name, array $vectors = [], array $options = []): array
-    {
-       return  $this->client->request('PATCH', "/collections/{$name}", $vectors + $options);
-    }
-
-    public function delete(string $name): array
-    {
-        return $this->client->request('DELETE', "/collections/{$name}");
-    }
-
-    public function addIndex(string $collection, string $field, FieldType $type): array
-    {
-        return $this->client->request('PUT', "/collections/{$collection}/index", [
-                'field_name' => $field,
-                'field_type' => $type->value,
-        ]);
-    }
-
-    public function dropIndex(string $collection, string $field)
-    {
-        return $this->client->request('DELETE', "/collections/{$collection}/index/{$field}");
+        return  $response->result();
     }
 
     public function collections(): Collection
     {
-        $response = $this->client->request('GET', '/collections');
+        $response = $this->transport->request('GET', '/collections');
 
-        return collect($response['result']['collections'] ?? [])->pluck('name');
+        return collect($response->result()['collections'] ?? [])->pluck('name');
+    }
+
+    public function exists(string $name): bool
+    {
+        $response = $this->transport->request('GET', "/collections/{$name}/exists");
+
+        return $response->result()['exists'];
+    }
+
+    public function update(string $name, array $vectors = [], array $options = []): bool
+    {
+       $response = $this->transport->request(
+           method: 'PATCH',
+           uri: "/collections/{$name}",
+           options: $vectors + $options
+       );
+
+       return $response->result();
+    }
+
+    public function delete(string $name): bool
+    {
+        $response =  $this->transport->request(
+            method: 'DELETE',
+            uri: "/collections/{$name}"
+        );
+
+        return $response->result();
+    }
+
+    public function addIndex(string $collection, string $field, FieldType $type): bool
+    {
+        return $this->transport->request(
+            method: 'PUT',
+            uri: "/collections/{$collection}/index",
+            options: [
+                'field_name' => $field,
+                'field_type' => $type->value,
+                ]
+            )->isOK();
+    }
+
+    public function dropIndex(string $collection, string $field)
+    {
+        return $this->transport->request(
+            method: 'DELETE',
+            uri: "/collections/{$collection}/index/{$field}"
+        )->isOK();
     }
 
     private function validateVectorParameters(array $vector): bool

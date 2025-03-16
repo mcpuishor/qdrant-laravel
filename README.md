@@ -1,4 +1,5 @@
 # Qdrant for Laravel
+WARNING! This package is under heavy development and it should not be used just yet. APIs and functionality changes may break applications. 
 
 ## Introduction
 This package provides an elegant, fluent interface for interacting with the [Qdrant Vector Database](https://qdrant.tech/) in Laravel. It supports:
@@ -107,14 +108,14 @@ $collection = QdrantSchema::make()
 ```
 ### Creating a new collection using a different connection 
 When the server connection is different from teh default one, the 
-connection must be specified when creating the collection: 
+connection must be specified when creating the collection:
 
 ```php
 use \Mcpuishor\QdrantLaravel\QdrantSchema;
-use \Mcpuishor\QdrantLaravel\QdrantClient;
+use \Mcpuishor\QdrantLaravel\QdrantTransport;
 use \Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
 
-$collection = QdrantSchema::make( new \Mcpuishor\QdrantLaravel\QdrantClient('backup') )
+$collection = QdrantSchema::make( new \Mcpuishor\QdrantLaravel\QdrantTransport('backup') )
                 ->create(
                    name: "new_collection",
                    vector: [
@@ -137,10 +138,11 @@ php artisan qdrant:migrate --rollback --collection=plants
 
 ## Extending with Macros
 The query builder and client are **Macroable**, allowing custom methods:
-```php
-use Mcpuishor\QdrantLaravel\QdrantQueryBuilder;
 
-QdrantQueryBuilder::macro('byClimate', function ($climate) {
+```php
+use Mcpuishor\QdrantLaravel\QdrantClient;
+
+QdrantClient::macro('byClimate', function ($climate) {
     return $this->where('climate', '=', $climate);
 });
 
