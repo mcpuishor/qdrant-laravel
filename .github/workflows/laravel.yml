@@ -11,10 +11,10 @@ jobs:
 
     strategy:
       matrix:
-        php: [8.2, 8.3, 8.4]
+        php: [8.2, 8.3]
         laravel: [12.*]
-        dependency-version: [prefer-stable]
-        os: [ubuntu-latest]
+        dependency-version: [prefer-lowest, prefer-stable]
+        os: [ubuntu-latest, windows-latest]
         testbench: [10.1]
 
     name: Platform ${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.dependency-version }} - ${{ matrix.os }}
