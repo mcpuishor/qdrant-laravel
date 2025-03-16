@@ -1,34 +1,43 @@
-name: Run Package Tests
+name: Run tests
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  php-tests:
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        php: [ '8.1', '8.2', '8.3' ]
+        php: [8.0, 8.1, 8.2, 8.3]
+        laravel: [10.*, 11.*, 12.*]
+        dependency-version: [prefer-lowest, prefer-stable]
+        os: [ubuntu-latest, windows-latest]
+
+    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.dependency-version }} - ${{ matrix.os }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v1
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@v1
         with:
           php-version: ${{ matrix.php }}
-          extensions: mbstring, pdo, intl
-          ini-values: post_max_size=256M, upload_max_filesize=256M
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick
+          coverage: none
 
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-progress --no-interaction
+      - name: Install dependencies
+        run: |
+          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-suggest
 
-      - name: Run Package Tests
+      - name: Execute tests
         run: vendor/bin/phpunit
+
+        if: failure()
+        with:
+          status: ${{ job.status }}
+          author_name: ${{ github.actor }}
