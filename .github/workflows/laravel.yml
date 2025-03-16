@@ -36,8 +36,3 @@ jobs:
 
       - name: Execute tests
         run: vendor/bin/phpunit
-
-        if: failure()
-        with:
-          status: ${{ job.status }}
-          author_name: ${{ github.actor }}
