@@ -15,6 +15,10 @@ class QdrantServiceProvider extends ServiceProvider
             return new QdrantClient(config('qdrant-laravel.default'));
         });
 
+        $this->app->bind('qdrantfilter', function ($app) {
+            return new Filter();
+        });
+
         $this->mergeConfigFrom(__DIR__.'/../config/qdrant-laravel.php', 'qdrant-laravel');
     }
 
