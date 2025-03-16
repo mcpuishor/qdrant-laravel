@@ -1,28 +1,34 @@
-name: Laravel
+name: Run Package Tests
 
 on:
   push:
-    branches: [ "master" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "master" ]
+    branches:
+      - main
 
 jobs:
-  laravel-tests:
-
+  test:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        php: [ '8.1', '8.2', '8.3' ]
+
     steps:
-      - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
-      - uses: actions/checkout@v4
-      - name: Copy .env
-        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
-      - name: Install Dependencies
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-      - name: Generate key
-        run: php artisan key:generate
-      - name: Directory Permissions
-        run: chmod -R 777 storage bootstrap/cache
-      - name: Run Tests
-        run: php artisan test
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, pdo, intl
+          ini-values: post_max_size=256M, upload_max_filesize=256M
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Run Package Tests
+        run: vendor/bin/phpunit
