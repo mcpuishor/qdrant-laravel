@@ -42,8 +42,8 @@ class Indexes
         if ($type == FieldType::INTEGER && $this->parameterized) {
             $fieldSchema = array_merge(
                             $fieldSchema,
-                            Config::get("qdrant-laravel.index_settings.parametrized_integer_index", [])
-            );
+                            config("qdrant-laravel.index_settings.parametrized_integer_index", [])
+                        );
         }
 
         return $this->transport->request(
@@ -60,7 +60,7 @@ class Indexes
 
     public function fulltext(string $field_name, TokenizerType $tokenizerType = TokenizerType::WORD): bool
     {
-        $fulltextSettings = Config::get("qdrant-laravel.index_settings.fulltext_index");
+        $fulltextSettings = config("qdrant-laravel.index_settings.fulltext_index");
 
         $fieldSchema = [
             "type" => FieldType::TEXT->value,

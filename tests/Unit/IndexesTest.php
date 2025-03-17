@@ -12,17 +12,6 @@ beforeEach(function () {
     $this->fieldName = 'field';
     $this->transport = Mockery::mock(QdrantTransport::class);
     $this->query = new QdrantClient($this->transport, $this->testCollectionName);
-    Config::shouldReceive('get')
-        ->with('qdrant-laravel.index_settings.parametrized_integer_index', [])
-        ->andReturn([]);
-
-    Config::shouldReceive('get')
-        ->with('qdrant-laravel.index_settings.fulltext_index')
-        ->andReturn([
-            'min_token_len' => 2,
-            'max_token_len' => 20,
-            'lowercase' => true,
-        ]);
 });
 
 it('can create a payload index', function(){
