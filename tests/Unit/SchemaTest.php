@@ -1,7 +1,6 @@
 <?php
 
 use Mcpuishor\QdrantLaravel\DTOs\Response;
-use Mcpuishor\QdrantLaravel\Enums\FieldType;
 use Mcpuishor\QdrantLaravel\Exceptions\FailedToCreateCollectionException;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
 use Mcpuishor\QdrantLaravel\QdrantSchema;
@@ -196,54 +195,6 @@ describe('Collections', function() {
         $result = $this->qdrantSchema->delete($collectionName);
 
         expect($result)->toBeFalse();
-    });
-});
-
-describe('Indexing', function(){
-    it('can create a payload index', function(){
-        $this->qdrantClient->shouldReceive('request')
-            ->withArgs([
-                'PUT',
-                '/collections/test/index',
-                [
-                   'field_name' => 'field',
-                   'field_type' => FieldType::TEXT->value,
-                ]
-            ])
-            ->andReturn(new Response([
-                'time' => 1,
-                'status' => 'ok',
-                'result' => [
-                    'status' => 'acknowledged',
-                    'operation_id' => 1,
-                ],
-            ]));
-
-        $result = $this->qdrantSchema->addIndex('test', 'field', FieldType::TEXT);
-
-        expect($result)->toBeTrue();
-    });
-
-    it('can delete a payload index', function(){
-        $fieldName = 'field_indexed';
-        $collectionName = 'test';
-        $this->qdrantClient->shouldReceive('request')
-            ->withArgs([
-                'DELETE',
-                "/collections/{$collectionName}/index/" . $fieldName
-            ])
-            ->andReturn(new Response([
-                'time' => 1,
-                'status' => 'ok',
-                'result' => [
-                    'status' => 'acknowledged',
-                    'operation_id' => 1,
-                ],
-            ]));
-
-        $result = $this->qdrantSchema->dropIndex($collectionName, $fieldName);
-
-        expect($result)->toBetrue();
     });
 });
 

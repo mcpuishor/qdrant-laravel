@@ -7,7 +7,7 @@ use Mcpuishor\QdrantLaravel\QdrantServiceProvider;
 
 class TestCase extends Orchestra
 {
-    protected function getPackageProviders($app)
+    protected function getPackageProviders($app): array
     {
         return [
             QdrantServiceProvider::class,
