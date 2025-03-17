@@ -1,7 +1,6 @@
 <?php
+use Mcpuishor\QdrantLaravel\Tests\TestCase;
 
-use Orchestra\Testbench\TestCase;
-
-pest()->extend(Tests\TestCase::class)
+pest()->extend(TestCase::class)
     ->in('Feature', 'Unit');
 
