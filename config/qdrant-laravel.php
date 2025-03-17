@@ -22,4 +22,21 @@ return [
         'height' => 'float',
         'climate' => 'text',
     ],
+
+    /* allows parameterizaton of integer indexes
+     * check the documentation for further details
+     * https://qdrant.tech/documentation/concepts/indexing/#parameterized-index
+     */
+
+    'index_settings' => [
+        'parametrized_integer_index' => [
+            'lookup' => true,
+            'range' => false
+        ],
+        'fulltext_index' => [
+            'min_token_len' => 2,
+            'max_token_len' => 20,
+            'lowercase' => true,
+        ]
+    ]
 ];

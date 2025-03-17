@@ -2,6 +2,7 @@
 namespace Mcpuishor\QdrantLaravel;
 
 use Illuminate\Support\Traits\Macroable;
+use Mcpuishor\QdrantLaravel\Query\Indexes;
 use Mcpuishor\QdrantLaravel\Query\Payloads;
 use Mcpuishor\QdrantLaravel\Query\Points;
 use Mcpuishor\QdrantLaravel\Query\Vectors;
@@ -22,6 +23,11 @@ class QdrantClient
     public function schema() : QdrantSchema
     {
         return new QdrantSchema($this->transport);
+    }
+
+    public function indexes(): Indexes
+    {
+        return new Indexes($this->transport, $this->collection);
     }
 
     public function points() : Points

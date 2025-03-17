@@ -90,26 +90,6 @@ class QdrantSchema
         return $response->result();
     }
 
-    public function addIndex(string $collection, string $field, FieldType $type): bool
-    {
-        return $this->transport->request(
-            method: 'PUT',
-            uri: "/collections/{$collection}/index",
-            options: [
-                'field_name' => $field,
-                'field_type' => $type->value,
-                ]
-            )->isOK();
-    }
-
-    public function dropIndex(string $collection, string $field)
-    {
-        return $this->transport->request(
-            method: 'DELETE',
-            uri: "/collections/{$collection}/index/{$field}"
-        )->isOK();
-    }
-
     private function validateVectorParameters(array $vector): bool
     {
         if (isset($vector['distance']) && !DistanceMetric::validate($vector['distance'])) {

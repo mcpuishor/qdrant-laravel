@@ -8,6 +8,9 @@ enum FieldType: string
     case INTEGER = 'integer';
     case FLOAT = 'float';
     case BOOLEAN = 'boolean';
+    case GEO = 'geo';
+    case DATETIME = 'datetime';
+    case UUID = 'uuid';
 
     public static function values(): array
     {
