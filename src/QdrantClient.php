@@ -5,6 +5,7 @@ use Illuminate\Support\Traits\Macroable;
 use Mcpuishor\QdrantLaravel\Query\Indexes;
 use Mcpuishor\QdrantLaravel\Query\Payloads;
 use Mcpuishor\QdrantLaravel\Query\Points;
+use Mcpuishor\QdrantLaravel\Query\Query;
 use Mcpuishor\QdrantLaravel\Query\Vectors;
 
 class QdrantClient
@@ -43,5 +44,10 @@ class QdrantClient
     public function payloads()
     {
         return new Payloads($this->transport, $this->collection);
+    }
+
+    public function search(int $hnsw_ef = 128, bool $exact = false, int $limit = 10)
+    {
+        return new Query($this->transport, $this->collection, $hnsw_ef, $exact, $limit);
     }
 }

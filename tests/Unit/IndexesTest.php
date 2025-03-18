@@ -5,7 +5,6 @@ use Mcpuishor\QdrantLaravel\Enums\TokenizerType;
 use Mcpuishor\QdrantLaravel\QdrantClient;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
 use Mcpuishor\QdrantLaravel\DTOs\Response;
-use Illuminate\Support\Facades\Config;
 
 beforeEach(function () {
     $this->testCollectionName = 'test';
@@ -123,3 +122,31 @@ it('can create a full-text index', function($tokenizerType){
 
     expect($result)->toBeTrue();
 })->with(TokenizerType::cases());
+
+it('can create a parameterized integer index', function(){
+    $this->transport->shouldReceive('request')
+        ->withArgs([
+            'PUT',
+            "/collections/{$this->testCollectionName}/index",
+            [
+                "json" => [
+                    'field_name' => $this->fieldName,
+                    'field_schema' => [
+                        'type' => FieldType::INTEGER->value,
+                        "on_disk" => false,
+                        'lookup' => true,
+                        'range' => false
+                    ]
+                ]
+            ]
+        ])->andReturn(new Response([
+            'time' => 1,
+            'status' => 'ok',
+            'result' => [
+                'status' => 'acknowledged',
+                'operation_id' => 1,
+            ],
+        ]));
+
+        $result = $this->query->indexes()->parameterized()->add($this->fieldName, FieldType::INTEGER);
+});

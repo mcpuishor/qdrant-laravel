@@ -17,4 +17,19 @@ readonly class Point
             'payload' => $this->payload,
         ];
     }
+
+    public function id(): string|int
+    {
+        return $this->id;
+    }
+
+    public function vector(): ?array
+    {
+        return $this->vector;
+    }
+
+    public function isEmpty(): bool
+    {
+        return empty($this->vector) && empty($this->payload);
+    }
 }

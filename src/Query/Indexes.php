@@ -1,6 +1,5 @@
 <?php
 namespace Mcpuishor\QdrantLaravel\Query;
-use Illuminate\Support\Facades\Config;
 use Mcpuishor\QdrantLaravel\Enums\FieldType;
 use Mcpuishor\QdrantLaravel\Enums\TokenizerType;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
@@ -27,7 +26,7 @@ class Indexes
         return $this;
     }
 
-    public function parameterized():self //TODO test to make sure it affects the payload
+    public function parameterized():self
     {
         $this->parameterized = true;
         return $this;

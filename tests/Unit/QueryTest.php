@@ -1,0 +1,148 @@
+<?php
+
+use Mcpuishor\QdrantLaravel\DTOs\Point;
+use Mcpuishor\QdrantLaravel\Enums\FilterConditions;
+use Mcpuishor\QdrantLaravel\Enums\FilterVerbs;
+use Mcpuishor\QdrantLaravel\Exceptions\SearchException;
+use Mcpuishor\QdrantLaravel\QdrantClient;
+use Mcpuishor\QdrantLaravel\QdrantTransport;
+use Mcpuishor\QdrantLaravel\Query\Query;
+use Mcpuishor\QdrantLaravel\DTOs\Response;
+
+beforeEach(function () {
+    $this->testCollectionName = 'test';
+    $this->fieldName = 'field';
+    $this->transport = Mockery::mock(QdrantTransport::class);
+    $this->query = new QdrantClient($this->transport, $this->testCollectionName);
+
+    $this->searchEndpoint = "/collections/{$this->testCollectionName}/points/query";
+
+    $this->vector = [1, 2, 3];
+
+    $this->validResponse = new Response([
+        "result" => [
+            ["id" => 10, "score" => 0.81],
+            ["id" => 14, "score" => 0.75],
+            ["id" => 11, "score" => 0.73],
+        ],
+        "status" => "ok",
+        "time" => 1
+    ]);
+});
+
+it('creates an instance of Search class', function () {
+    $result = $this->query->search();
+
+    expect($result)->toBeInstanceOf(Query::class);
+});
+
+it('can perform a simple search by vector', function (){
+    $this->transport->shouldReceive('request')
+        ->withArgs([
+            'POST',
+            $this->searchEndpoint,
+            ['json' => [
+                'query' => $this->vector,
+                "params" => [
+                    "hnsw_ef" => 128,
+                    "exact" => false,
+                ],
+                "limit" => 10,
+            ]]
+        ])
+        ->andReturn($this->validResponse);
+
+
+    $result = $this->query->search()->vector($this->vector);
+
+    expect($result)->toBeArray()
+        ->toHaveCount(3);
+});
+
+it('throws an exception if the search cannot be performed', function () {
+    $this->transport->shouldReceive('request')
+        ->withArgs([
+            'POST',
+            $this->searchEndpoint,
+            ['json' => [
+                'query' => $this->vector,
+                "params" => [
+                    "hnsw_ef" => 128,
+                    "exact" => false,
+                ],
+                "limit" => 10,
+            ]]
+        ])
+        ->andReturn(new Response([
+            'status' => 'error',
+            'message' => 'Something went wrong.'
+        ]));
+
+    $this->query->search()->vector($this->vector);
+
+})->throws(SearchException::class);
+
+it('can add a filter to the search query', function (string $term, FilterConditions $condition, string $value) {
+
+    $this->transport->shouldReceive('request')
+        ->once()
+        ->withArgs([
+            "POST",
+            $this->searchEndpoint,
+            ['json' => [
+                "query" => $this->vector,
+                "params" => [
+                    "hnsw_ef" => 128,
+                    "exact" => false,
+                ],
+                "limit" => 10,
+                "filter" => [
+                   FilterVerbs::MUST->value => [
+                       [
+                            "key" => $term,
+                            $condition->value => [
+                                'value' => $value
+                            ],
+                       ],
+                    ]
+                ],
+            ]]
+        ])->andReturn($this->validResponse);
+
+
+    $result = $this->query->search()
+                ->must(
+                    $term,
+                    $condition,
+                    $value
+                )
+                ->vector($this->vector);
+
+    expect($result)
+        ->toBeArray()
+        ->toHaveCount(3);
+})->with([
+    "dataset1" => [ 'field1', FilterConditions::MATCH, 'value1' ],
+    "dataset3" => [ 'field3', FilterConditions::RANGE, 'value1'],
+    "dataset5" => [ 'field5', FilterConditions::IS_EMPTY, '' ],
+]);
+
+it('throws an exception if the vector is not provided', function ($vector) {
+    $this->transport->shouldReceive('request')
+        ->withAnyArgs()
+        ->never();
+
+    $this->query->search()->vector($vector);
+})->with([
+    "empty" => [ [] ] //the argument is an empty vector
+])->throws(SearchException::class, 'Search vector cannot be empty.');
+
+it('throws an exception if the point is empty', function ($vector) {
+    $this->transport->shouldReceive('request')
+        ->withAnyArgs()
+        ->never();
+
+    $this->query->search()->point(new Point( id: 1, vector: $vector ));
+})->with([
+    "empty" => [ [] ] //the argument is an empty vector
+])->throws(SearchException::class, 'Search point cannot be empty.');

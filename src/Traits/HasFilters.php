@@ -62,6 +62,11 @@ trait HasFilters
         return $this;
     }
 
+    public function hasFilters(): bool
+    {
+        return count($this->filters) > 0;
+    }
+
     public function getFilters(): array
     {
         return $this->filters;
