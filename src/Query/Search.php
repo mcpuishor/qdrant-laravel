@@ -6,7 +6,7 @@ use Mcpuishor\QdrantLaravel\Exceptions\SearchException;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
 use Mcpuishor\QdrantLaravel\Traits\HasFilters;
 
-class Query
+class Search
 {
     use HasFilters;
     private bool $withPayload = false;

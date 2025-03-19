@@ -6,7 +6,7 @@ use Mcpuishor\QdrantLaravel\Enums\FilterVerbs;
 use Mcpuishor\QdrantLaravel\Exceptions\SearchException;
 use Mcpuishor\QdrantLaravel\QdrantClient;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
-use Mcpuishor\QdrantLaravel\Query\Query;
+use Mcpuishor\QdrantLaravel\Query\Search;
 use Mcpuishor\QdrantLaravel\DTOs\Response;
 
 beforeEach(function () {
@@ -31,9 +31,9 @@ beforeEach(function () {
 });
 
 it('creates an instance of Query class', function () {
-    $result = $this->query->query();
+    $result = $this->query->search();
 
-    expect($result)->toBeInstanceOf(Query::class);
+    expect($result)->toBeInstanceOf(Search::class);
 });
 
 it('can perform a simple search by vector', function (){
@@ -53,7 +53,7 @@ it('can perform a simple search by vector', function (){
         ->andReturn($this->validResponse);
 
 
-    $result = $this->query->query()->vector($this->vector);
+    $result = $this->query->search()->vector($this->vector);
 
     expect($result)->toBeArray()
         ->toHaveCount(3);
@@ -78,7 +78,7 @@ it('throws an exception if the search cannot be performed', function () {
             'message' => 'Something went wrong.'
         ]));
 
-    $this->query->query()->vector($this->vector);
+    $this->query->search()->vector($this->vector);
 
 })->throws(SearchException::class);
 
@@ -110,7 +110,7 @@ it('can add a filter to the search query', function (string $term, FilterConditi
         ])->andReturn($this->validResponse);
 
 
-    $result = $this->query->query()
+    $result = $this->query->search()
                 ->must(
                     $term,
                     $condition,
@@ -132,7 +132,7 @@ it('throws an exception if the vector is not provided', function ($vector) {
         ->withAnyArgs()
         ->never();
 
-    $this->query->query()->vector($vector);
+    $this->query->search()->vector($vector);
 })->with([
     "empty" => [ [] ] //the argument is an empty vector
 ])->throws(SearchException::class, 'Search vector cannot be empty.');
@@ -142,7 +142,7 @@ it('throws an exception if the point is empty', function ($vector) {
         ->withAnyArgs()
         ->never();
 
-    $this->query->query()->point(new Point( id: 1, vector: $vector ));
+    $this->query->search()->point(new Point( id: 1, vector: $vector ));
 })->with([
     "empty" => [ [] ] //the argument is an empty vector
 ])->throws(SearchException::class, 'Search point cannot be empty.');
@@ -163,7 +163,7 @@ it('can restrict the number of results returned', function () {
            ]]
        ])->andReturn($this->validResponse);
 
-   $result = $this->query->query()->limit($newLimit)->vector($this->vector);
+   $result = $this->query->search()->limit($newLimit)->vector($this->vector);
 
    expect($result)->toBeArray()
        ->toHaveCount(3);
@@ -174,5 +174,5 @@ it('throws an exception if the limit is not a positive integer', function () {
         ->withAnyArgs()
         ->never();
 
-    $this->query->query()->limit(-1);
+    $this->query->search()->limit(-1);
 })->throws(SearchException::class, 'Limit must be greater than 0.');
