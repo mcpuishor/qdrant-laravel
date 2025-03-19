@@ -56,6 +56,10 @@ class Query
 
     public function limit(int $limit): self
     {
+        if ($limit < 1) {
+            throw new SearchException('Limit must be greater than 0.');
+        }
+
         $this->limit = $limit;
 
         return $this;

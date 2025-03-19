@@ -46,7 +46,7 @@ class QdrantClient
         return new Payloads($this->transport, $this->collection);
     }
 
-    public function search(int $hnsw_ef = 128, bool $exact = false, int $limit = 10)
+    public function query(int $hnsw_ef = 128, bool $exact = false, int $limit = 10)
     {
         return new Query($this->transport, $this->collection, $hnsw_ef, $exact, $limit);
     }
