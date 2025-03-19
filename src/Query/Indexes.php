@@ -11,8 +11,10 @@ class Indexes
 
     public function __construct(
         private QdrantTransport $transport,
-        private readonly string $collection,
-    ){}
+        private  string          $collection,
+    ){
+        $this->transport = $this->transport->baseUri("/collections/{$this->collection}/index");
+    }
 
     public function onDisk(): self
     {
@@ -45,9 +47,8 @@ class Indexes
                         );
         }
 
-        return $this->transport->request(
-            method: 'PUT',
-            uri: "/collections/{$this->collection}/index",
+        return $this->transport->put(
+            uri: "",
             options: [
                 'json' => [
                     'field_name' => $field_name,
@@ -67,9 +68,8 @@ class Indexes
         ];
         $fieldSchema = array_merge($fieldSchema, $fulltextSettings);
 
-        return $this->transport->request(
-            method: 'PUT',
-            uri: "/collections/{$this->collection}/index",
+        return $this->transport->put(
+            uri: "",
             options: [
                 'json' => [
                     'field_name' => $field_name,
@@ -81,9 +81,8 @@ class Indexes
 
     public function delete(string $field_name): bool
     {
-        return $this->transport->request(
-            method: 'DELETE',
-            uri: "/collections/{$this->collection}/index/{$field_name}"
+        return $this->transport->delete(
+            uri: "/{$field_name}"
         )->isOk();
     }
 }

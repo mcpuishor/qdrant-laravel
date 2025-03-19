@@ -13,6 +13,7 @@ class Search
     private array $only = [];
     private array $exclude = [];
     private bool $withVectors = false;
+    private string|array $query;
 
     public function __construct(
         private QdrantTransport $transport,
@@ -20,7 +21,9 @@ class Search
         private readonly int $hnsw_ef,
         private readonly bool $exact,
         private int $limit,
-    ){}
+    ){
+        $this->transport = $this->transport->baseUri("/collections/{$this->collection}/points/query");
+    }
 
     public function include( string|array $only = []): self
     {
@@ -71,12 +74,8 @@ class Search
             throw new SearchException('Search vector cannot be empty.');
         }
 
-        $result = $this->performSearch($vector);
-
-        if (!$result->isOK()) {
-            throw new SearchException('Search could not be performed.'); //TODO add a more explicit message to this exception
-        }
-        return $result->result();
+        $this->add( $vector );
+        return  $this->performSearch();
     }
 
     public function point(Point $point): array
@@ -85,42 +84,91 @@ class Search
             throw new SearchException('Search point cannot be empty.');
         }
 
-        $result = $this->performSearch($point->id());
+        $this->add( $point->id() );
+
+       return $this->performSearch();
+    }
+
+    private function performSearch(): array
+    {
+        $result = $this->transport->post(
+            uri: "",
+            options: [
+                'json' => $this->getSearchPayload($this->query),
+            ]
+        );
 
         if (!$result->isOK()) {
             throw new SearchException('Search could not be performed.'); //TODO add a more explicit message to this exception
         }
+
         return $result->result();
     }
 
-    private function performSearch(array|string $query): Response
+    public function getSearchPayload(): array
     {
         $searchPayload = [
-            "query" => $query,
+            "query" => $this->query,
             "params" => [
                 "hnsw_ef" => $this->hnsw_ef,
                 "exact" => $this->exact,
             ],
+            "with_payload" => $this->withPayload,
             "limit" => $this->limit,
         ];
 
-        if ($this->withPayload) {
+        if ($this->withPayload && $this->only) {
             $searchPayload['with_payload'] = [
-                'exclude' => $this->exclude,
                 'only' => $this->only,
             ];
+        }
+
+        if ($this->withPayload && $this->exclude) {
+            $searchPayload['with_payload'] = [
+                'exclude' => $this->exclude,
+            ];
+        }
+
+        if($this->withVectors) {
+            $searchPayload['with_vectors'] = true;
         }
 
         if ($this->getFilters()) {
             $searchPayload['filter'] = $this->getFilters();
         }
 
-        return $this->transport->request(
-            method: 'POST',
-            uri: "/collections/{$this->collection}/points/query",
+        return $searchPayload;
+    }
+
+    public function add(array|string $query): self
+    {
+        $this->query = $query;
+
+        return $this;
+    }
+
+    public function batch(array $searches): array
+    {
+        if (count($searches) === 0) {
+            throw new SearchException('Search array cannot be empty.');
+        }
+
+        $searchPayload = [];
+
+        foreach($searches as $search) {
+            if (!$search instanceof Search) {
+                throw new SearchException('Search must be an instance of Search.');
+            }
+            $searchPayload[] = $search->getSearchPayload();
+        }
+
+        return $this->transport->post(
+            uri: "/batch",
             options: [
-                'json' => $searchPayload,
+                'json' => [
+                    'searches' => $searchPayload,
+                ],
             ]
-        );
+        )->result();
     }
 }

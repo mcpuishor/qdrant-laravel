@@ -127,6 +127,47 @@ it('can add a filter to the search query', function (string $term, FilterConditi
     "dataset5" => [ 'field5', FilterConditions::IS_EMPTY, '' ],
 ]);
 
+it('can switch on the payload return', function () {
+
+   $query = $this->query->search()->withPayload()->add($this->vector);
+
+   expect($query->getSearchPayload())
+       ->toBeArray()
+       ->toHaveKey('with_payload', true);
+});
+
+it('can switch on the vectors return', function () {
+   $query = $this->query->search()->withVectors()->add($this->vector);
+
+   expect($query->getSearchPayload())
+       ->toBeArray()
+       ->toHaveKey('with_vectors', true);
+});
+
+it('can select the fields in payload to return', function (){
+    $field = "test_field";
+    $query = $this->query->search()->include([$field])->add($this->vector);
+
+    expect($query->getSearchPayload())
+        ->toBeArray()
+        ->toHaveKey('with_payload')
+    ->and($query->getSearchPayload()['with_payload'])
+        ->toBeArray()
+        ->toHaveKey('only', [$field]);
+});
+
+it('can exclude fields from the payload from the return', function(){
+    $field = "test_field";
+    $query = $this->query->search()->exclude([$field])->add($this->vector);
+
+    expect($query->getSearchPayload())
+        ->toBeArray()
+        ->toHaveKey('with_payload')
+        ->and($query->getSearchPayload()['with_payload'])
+        ->toBeArray()
+        ->toHaveKey('exclude', [$field]);
+});
+
 it('throws an exception if the vector is not provided', function ($vector) {
     $this->transport->shouldReceive('request')
         ->withAnyArgs()
@@ -176,3 +217,19 @@ it('throws an exception if the limit is not a positive integer', function () {
 
     $this->query->search()->limit(-1);
 })->throws(SearchException::class, 'Limit must be greater than 0.');
+
+it('can submit a batch of searches at once', function () {
+    $this->transport->shouldReceive('request')
+        ->withSomeOfArgs([
+            'POST',
+            $this->searchEndpoint,
+        ]);
+
+    $result = $this->query->search()->batch([
+        $this->query->search()->must('key1', FilterConditions::MATCH, 'test1' )->add($this->vector),
+        $this->query->search()->limit(5)->add($this->vector),
+        $this->query->search()->withPayload()->withVectors()->add($this->vector),
+        $this->query->search()->include(['test1', 'city'])->withVectors()->add($this->vector),
+        $this->query->search()->exclude(['test1', 'city'])->withVectors()->add($this->vector),
+    ]);
+});

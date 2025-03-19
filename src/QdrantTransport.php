@@ -14,6 +14,8 @@ class QdrantTransport
     protected string $endpoint;
     protected ?string $apiKey;
 
+    private $baseUri = '';
+
     public function __construct(string $connection = null)
     {
         $config = config('qdrant-laravel');
@@ -40,6 +42,31 @@ class QdrantTransport
     public function get(): self
     {
         return $this;
+    }
+
+    public function baseUri(string $baseUri): self
+    {
+        $this->baseUri = $baseUri;
+        return $this;
+    }
+
+    public function post($uri, array $options = []): Response
+    {
+        return $this->request('POST', $this->baseUri . $uri, $options);
+    }
+
+    public function put($uri, array $options = []): Response
+    {
+        return $this->request('PUT', $this->baseUri . $uri, $options);
+    }
+
+    public function delete($uri, array $options = []): Response
+    {
+        if ($options !== []) {
+            return $this->request('DELETE', $this->baseUri . $uri, $options);
+        }
+
+        return $this->request('DELETE', $this->baseUri . $uri);
     }
 
     public function collection(string $name): QdrantClient

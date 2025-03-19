@@ -11,6 +11,12 @@ beforeEach(function () {
     $this->fieldName = 'field';
     $this->transport = Mockery::mock(QdrantTransport::class);
     $this->query = new QdrantClient($this->transport, $this->testCollectionName);
+
+    $this->transport->shouldReceive('baseUri')
+        ->passthru()
+        ->andReturnSelf();
+
+    $this->transport->shouldReceive('put', 'post', 'delete')->passthru();
 });
 
 it('can create a payload index', function(){
