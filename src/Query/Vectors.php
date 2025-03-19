@@ -9,15 +9,16 @@ class Vectors
 {
     use HasFilters;
     public function __construct(
-        private readonly QdrantTransport $transport,
-        private readonly string          $collection,
-    ){}
+        private QdrantTransport $transport,
+        private string          $collection,
+    ){
+        $this->transport = $this->transport->baseUri("/collections/{$this->collection}/points/vectors");
+    }
 
     public function update(PointsCollection $collection): bool
     {
-        return $this->transport->request(
-            method: 'PUT',
-            uri: "/collections/{$this->collection}/points/vectors",
+        return $this->transport->put(
+            uri: "",
             options: [
                 'json' => [
                     "points" => $collection->toArray(),
@@ -28,9 +29,8 @@ class Vectors
 
     public function delete(array $ids): bool
     {
-        return $this->transport->request(
-            method: 'POST',
-            uri: "/collections/{$this->collection}/points/vectors/delete",
+        return $this->transport->post(
+            uri: "/delete",
             options: [
                 'json' => [
                     'points' => $ids,

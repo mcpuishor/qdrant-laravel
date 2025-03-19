@@ -1,43 +1,46 @@
 <?php
 
+use Illuminate\Support\Collection;
 use Mcpuishor\QdrantLaravel\DTOs\Response;
 use Mcpuishor\QdrantLaravel\Exceptions\FailedToCreateCollectionException;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
 use Mcpuishor\QdrantLaravel\QdrantSchema;
 
 beforeEach(function () {
-    $this->qdrantClient = Mockery::mock(QdrantTransport::class);
-    $this->qdrantSchema = new QdrantSchema(transport: $this->qdrantClient);
+    $this->transport = Mockery::mock(QdrantTransport::class);
+
+    $this->transport
+        ->shouldReceive('baseUri', 'put', 'post', 'delete', 'get', 'patch')
+        ->passthru();
+
+    $this->qdrantSchema = new QdrantSchema(transport: $this->transport);
 });
 
 describe('Listing', function(){
     it('can list all collections', function () {
-        $this->qdrantClient->shouldReceive('request')
+        $this->transport->shouldReceive('request')
             ->withArgs(['GET', '/collections'])
             ->andReturn(
-                new Response (
-                    [
-                        "result" =>
-                            [
-                                "collections" => [
-                                    ['name' => 'test'],
-                                    ['name' => 'test2'],
-                                    ['name' => 'test3'],
-                                ]
-                            ]
-                    ])
-                );
+                new Response ([
+                    "result" => [
+                        "collections" => [
+                            ['name' => 'test'],
+                            ['name' => 'test2'],
+                            ['name' => 'test3'],
+                        ]
+                    ]
+                ]));
 
         $response = $this->qdrantSchema->collections();
 
         expect($response)
-            ->tobeInstanceOf(\Illuminate\Support\Collection::class)
+            ->tobeInstanceOf(Collection::class)
             ->toHaveCount(3);
     });
 
     it('can check if a collection exists', function(){
         $collection = 'testcollection';
-        $this->qdrantClient->shouldReceive('request')
+        $this->transport->shouldReceive('request')
             ->withArgs([
                 'GET',
                 "/collections/$collection/exists"
@@ -63,7 +66,7 @@ describe('Listing', function(){
 describe('Collections', function() {
     it('can create a new collection in single mode', function () {
         $testCollectionName = 'testcollection';
-        $this->qdrantClient->shouldReceive('request')
+        $this->transport->shouldReceive('request')
             ->withArgs([
                 'PUT',
                 '/collections/' . $testCollectionName,
@@ -89,7 +92,7 @@ describe('Collections', function() {
 
     it('can create a new collection in multiple vectors mode', function () {
         $testCollectionName = 'testcollection';
-        $this->qdrantClient->shouldReceive('request')
+        $this->transport->shouldReceive('request')
             ->withArgs([
                 'PUT',
                 '/collections/' . $testCollectionName,
@@ -122,7 +125,7 @@ describe('Collections', function() {
 
     it('can update a collection', function() {
         $collectionName = 'test';
-        $this->qdrantClient->shouldReceive('request')
+        $this->transport->shouldReceive('request')
             ->withArgs([
                 'PATCH',
                 "/collections/$collectionName",
@@ -143,7 +146,7 @@ describe('Collections', function() {
 
     it('throws an error if it cannot create a collection', function () {
         $collectionName = 'test';
-        $this->qdrantClient->shouldReceive('request')
+        $this->transport->shouldReceive('request')
             ->withArgs([
                 'PUT',
                 "/collections/$collectionName",
@@ -157,7 +160,7 @@ describe('Collections', function() {
 
     it('can delete a collection', function () {
         $collectionName = 'test';
-        $this->qdrantClient->shouldReceive('request')
+        $this->transport->shouldReceive('request')
             ->withArgs([
                 "DELETE",
                 "/collections/$collectionName"
@@ -178,7 +181,7 @@ describe('Collections', function() {
 
     it('cannot delete a non-existent collection', function () {
         $collectionName = 'test2';
-        $this->qdrantClient->shouldReceive('request')
+        $this->transport->shouldReceive('request')
             ->withArgs([
                 "DELETE",
                 "/collections/$collectionName"
@@ -200,7 +203,7 @@ describe('Collections', function() {
 
 describe('Failing tests', function() {
     beforeEach(function () {
-        $this->qdrantClient->shouldReceive('request')
+        $this->transport->shouldReceive('request')
             ->withSomeOfArgs([
                 'PUT',
                 '/collections/test',

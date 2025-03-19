@@ -7,14 +7,17 @@ use Mcpuishor\QdrantLaravel\DTOs\Response;
 
 
 beforeEach(function () {
+    $this->testCollectionName = 'test';
     $this->transport = Mockery::mock(QdrantTransport::class);
+
+    $this->transport
+        ->shouldReceive('baseUri', 'put', 'post', 'delete', 'get', 'patch')
+        ->passthru();
+
+    $this->query = new QdrantClient($this->transport, $this->testCollectionName);
 });
 
 describe('Vector', function () {
-    beforeEach(function () {
-        $this->testCollectionName = 'test';
-        $this->query = new QdrantClient($this->transport, $this->testCollectionName);
-    });
 
     it('can update vectors', function (PointsCollection $pointsCollection) {
         $this->transport->shouldReceive('request')

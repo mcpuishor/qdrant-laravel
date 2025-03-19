@@ -17,9 +17,9 @@ class Search
 
     public function __construct(
         private QdrantTransport $transport,
-        private readonly string $collection,
-        private readonly int $hnsw_ef,
-        private readonly bool $exact,
+        private string $collection,
+        private int $hnsw_ef,
+        private bool $exact,
         private int $limit,
     ){
         $this->transport = $this->transport->baseUri("/collections/{$this->collection}/points/query");
@@ -94,7 +94,7 @@ class Search
         $result = $this->transport->post(
             uri: "",
             options: [
-                'json' => $this->getSearchPayload($this->query),
+                'json' => $this->getSearchPayload(),
             ]
         );
 
@@ -113,9 +113,12 @@ class Search
                 "hnsw_ef" => $this->hnsw_ef,
                 "exact" => $this->exact,
             ],
-            "with_payload" => $this->withPayload,
             "limit" => $this->limit,
         ];
+
+        if ($this->withPayload) {
+            $searchPayload['with_payload'] = true;
+        }
 
         if ($this->withPayload && $this->only) {
             $searchPayload['with_payload'] = [
@@ -149,16 +152,12 @@ class Search
 
     public function batch(array $searches): array
     {
-        if (count($searches) === 0) {
-            throw new SearchException('Search array cannot be empty.');
-        }
+        throw_if(count($searches) === 0, SearchException::class, 'Search array cannot be empty.');
 
         $searchPayload = [];
 
         foreach($searches as $search) {
-            if (!$search instanceof Search) {
-                throw new SearchException('Search must be an instance of Search.');
-            }
+            throw_if(!$search instanceof Search, SearchException::class, 'Search must be an instance of Search.');
             $searchPayload[] = $search->getSearchPayload();
         }
 

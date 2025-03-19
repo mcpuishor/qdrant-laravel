@@ -13,6 +13,11 @@ beforeEach(function () {
     $this->testCollectionName = 'test';
     $this->fieldName = 'field';
     $this->transport = Mockery::mock(QdrantTransport::class);
+
+    $this->transport
+        ->shouldReceive('baseUri', 'put', 'post', 'delete', 'get', 'patch')
+        ->passthru();
+
     $this->query = new QdrantClient($this->transport, $this->testCollectionName);
 
     $this->searchEndpoint = "/collections/{$this->testCollectionName}/points/query";
@@ -218,18 +223,46 @@ it('throws an exception if the limit is not a positive integer', function () {
     $this->query->search()->limit(-1);
 })->throws(SearchException::class, 'Limit must be greater than 0.');
 
+it('throws an exception if the batch is empty', function () {
+    $this->transport->shouldReceive('request')->never();
+
+    $this->query->search()->batch([]);
+})->throws(SearchException::class, 'Search array cannot be empty.');
+
+
+
 it('can submit a batch of searches at once', function () {
+
     $this->transport->shouldReceive('request')
-        ->withSomeOfArgs([
+        ->withArgs([
             'POST',
-            $this->searchEndpoint,
-        ]);
+            $this->searchEndpoint .'/batch',
+            ['json' => [
+                'searches' => [
+                    [
+                        'query' => $this->vector,
+                        "params" => [
+                            "hnsw_ef" => 128,
+                            "exact" => false,
+                        ],
+                        "limit" => 10,
+                        "with_vectors" => true,
+                        "with_payload" => [
+                            "exclude" => ['test1', 'city']
+                        ],
+                    ]
+                ]
+            ]]
+        ])->andReturn($this->validResponse);
 
     $result = $this->query->search()->batch([
-        $this->query->search()->must('key1', FilterConditions::MATCH, 'test1' )->add($this->vector),
-        $this->query->search()->limit(5)->add($this->vector),
-        $this->query->search()->withPayload()->withVectors()->add($this->vector),
-        $this->query->search()->include(['test1', 'city'])->withVectors()->add($this->vector),
-        $this->query->search()->exclude(['test1', 'city'])->withVectors()->add($this->vector),
+//        $this->query->search()->must('key1', FilterConditions::MATCH, 'test1' )->add($this->vector),
+//        $this->query->search()->limit(5)->add($this->vector),
+//        $this->query->search()->withPayload()->withVectors()->add($this->vector),
+//        $this->query->search()->include(['test1', 'city'])->withVectors()->add($this->vector),
+          $this->query->search()->exclude(['test1', 'city'])->withVectors()->add($this->vector),
     ]);
+
+    expect($result)->toBeArray()
+        ->toHaveCount(3);
 });

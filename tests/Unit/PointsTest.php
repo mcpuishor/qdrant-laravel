@@ -7,7 +7,13 @@ use Mcpuishor\QdrantLaravel\QdrantTransport;
 use Mcpuishor\QdrantLaravel\QdrantClient;
 
 beforeEach(function () {
-    $this->qdrantClient = Mockery::mock(QdrantTransport::class);
+    $this->transport = Mockery::mock(QdrantTransport::class);
+    $this->transport->shouldReceive('baseUri')
+        ->passthru()
+        ->andReturnSelf();
+
+    $this->transport->shouldReceive('put', 'post', 'delete', 'get')->passthru();
+
 });
 
 it('can get an instance of the Client class', function () {
@@ -21,7 +27,7 @@ describe('Retrieval', function () {
     it('can retrieve list of points by ID', function () {
         $testCollectionName = 'test';
 
-       $this->qdrantClient->shouldReceive('request')
+       $this->transport->shouldReceive('request')
            ->withArgs([
                'POST',
                "/collections/$testCollectionName/points",
@@ -41,7 +47,7 @@ describe('Retrieval', function () {
                 ]
             ]));
 
-       $result = (new QdrantClient($this->qdrantClient, $testCollectionName))
+       $result = (new QdrantClient($this->transport, $testCollectionName))
                     ->points()->withPayload()->withVector()
                     ->get(ids: [1, 2]);
 
@@ -52,7 +58,7 @@ describe('Retrieval', function () {
     it('can retrieve a single point', function () {
         $testCollectionName = 'test';
         $testId = 1;
-        $this->qdrantClient->shouldReceive('request')
+        $this->transport->shouldReceive('request')
             ->withArgs([
                 'GET',
                 "/collections/$testCollectionName/points/$testId",
@@ -71,7 +77,7 @@ describe('Retrieval', function () {
                 ]
             ]));
 
-        $result = (new QdrantClient($this->qdrantClient, $testCollectionName))
+        $result = (new QdrantClient($this->transport, $testCollectionName))
                     ->points()->withoutPayload()->withoutVector()
                     ->get($testId);
 
@@ -86,7 +92,7 @@ describe('Retrieval', function () {
 describe('Points creation', function () {
     beforeEach(function () {
         $this->testCollectionName = 'test';
-        $this->query = (new QdrantClient($this->qdrantClient, $this->testCollectionName));
+        $this->query = (new QdrantClient($this->transport, $this->testCollectionName));
     });
 
     it('can upsert points', function () {
@@ -105,7 +111,7 @@ describe('Points creation', function () {
             ),
         ]);
 
-        $this->qdrantClient->shouldReceive('request')
+        $this->transport->shouldReceive('request')
             ->withArgs([
                 'PUT',
                 "/collections/{$this->testCollectionName}/points",
@@ -128,7 +134,7 @@ describe('Points creation', function () {
 
 describe('Points deletion', function () {
     it('can delete points by ID', function () {
-        $this->qdrantClient->shouldReceive('request')
+        $this->transport->shouldReceive('request')
             ->withArgs([
                 'POST',
                 '/collections/test/points/delete',
@@ -143,7 +149,7 @@ describe('Points deletion', function () {
                 ],
             ]));
 
-        $result = (new QdrantClient($this->qdrantClient, 'test'))
+        $result = (new QdrantClient($this->transport, 'test'))
             ->points()
             ->delete([1,2]);
 

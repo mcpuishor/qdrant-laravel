@@ -25,7 +25,7 @@ it('ensures that the connection is a singleton', function () {
 });
 
 it('can instantiate via Facade', function () {
-    $transport = Client::get();
+    $transport = Client::self();
 
     expect($transport)->toBeInstanceOf(QdrantTransport::class);
 });

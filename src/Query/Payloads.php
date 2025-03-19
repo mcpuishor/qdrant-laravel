@@ -10,13 +10,12 @@ class Payloads
     use HasFilters;
 
     private array $points = [];
-    private string $endpoint;
 
     public function __construct(
-        private readonly QdrantTransport $transport,
-        private readonly string          $collection,
+        private QdrantTransport $transport,
+        private string $collection,
     ){
-        $this->endpoint = "/collections/{$this->collection}/points/payload";
+        $this->transport = $this->transport->baseUri("/collections/{$this->collection}/points/payload");
     }
 
     public function for( array|PointsCollection $points ) :self
@@ -41,9 +40,8 @@ class Payloads
 
     public function clear(array $keys): bool
     {
-        return $this->transport->request(
-            method: 'POST',
-            uri: $this->endpoint . '/delete',
+        return $this->transport->post(
+            uri: '/delete',
             options: [
                 'json' => [
                     'points' => $this->points,
@@ -55,9 +53,8 @@ class Payloads
 
     public function clearAll(): bool
     {
-        return $this->transport->request(
-            method: 'POST',
-            uri: $this->endpoint . '/clear',
+        return $this->transport->post(
+            uri: '/clear',
             options: [
                 'json' => [
                     'points' => $this->points,
@@ -70,7 +67,7 @@ class Payloads
     {
         return $this->transport->request(
             method: $method,
-            uri: $this->endpoint,
+            uri: '',
             options: [
                 'json' => [
                     'points' => $this->points,

@@ -4,7 +4,6 @@ namespace Mcpuishor\QdrantLaravel;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Support\Collection;
 use Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
-use Mcpuishor\QdrantLaravel\Enums\FieldType;
 use InvalidArgumentException;
 use Illuminate\Support\Traits\Macroable;
 use Mcpuishor\QdrantLaravel\Exceptions\FailedToCreateCollectionException;
@@ -15,7 +14,9 @@ class QdrantSchema
 
     public function __construct(
         protected QdrantTransport $transport
-    ){}
+    ){
+        $this->transport = $this->transport->baseUri("/collections");
+    }
 
     static public function make(?QdrantTransport $transport = null): self
     {
@@ -39,9 +40,9 @@ class QdrantSchema
 
         try {
             $response =  $this->transport
-                        ->request(
-                            'PUT', "/collections/{$name}",
-                             $vectors + $options
+                        ->put(
+                            uri: "/{$name}",
+                             options: $vectors + $options
                         );
         } catch (ClientException $e) {
             $error = json_decode($e->getResponse()->getBody()->getContents());
@@ -57,23 +58,22 @@ class QdrantSchema
 
     public function collections(): Collection
     {
-        $response = $this->transport->request('GET', '/collections');
+        $response = $this->transport->get( '' );
 
         return collect($response->result()['collections'] ?? [])->pluck('name');
     }
 
     public function exists(string $name): bool
     {
-        $response = $this->transport->request('GET', "/collections/{$name}/exists");
+        $response = $this->transport->get( "/{$name}/exists");
 
         return $response->result()['exists'];
     }
 
     public function update(string $name, array $vectors = [], array $options = []): bool
     {
-       $response = $this->transport->request(
-           method: 'PATCH',
-           uri: "/collections/{$name}",
+       $response = $this->transport->patch(
+           uri: "/{$name}",
            options: $vectors + $options
        );
 
@@ -82,10 +82,7 @@ class QdrantSchema
 
     public function delete(string $name): bool
     {
-        $response =  $this->transport->request(
-            method: 'DELETE',
-            uri: "/collections/{$name}"
-        );
+        $response =  $this->transport->delete( uri: "/{$name}" );
 
         return $response->result();
     }

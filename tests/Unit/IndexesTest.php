@@ -16,7 +16,7 @@ beforeEach(function () {
         ->passthru()
         ->andReturnSelf();
 
-    $this->transport->shouldReceive('put', 'post', 'delete')->passthru();
+    $this->transport->shouldReceive('put', 'post', 'delete', 'get')->passthru();
 });
 
 it('can create a payload index', function(){

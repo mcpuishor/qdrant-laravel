@@ -15,7 +15,9 @@ class Points
     public function __construct(
         private QdrantTransport $transport,
         private readonly string $collection,
-    ){}
+    ){
+        $this->transport = $this->transport->baseUri("/collections/{$this->collection}/points" );
+    }
 
     public function withPayload(): self
     {
@@ -53,9 +55,8 @@ class Points
     private function getPointsById(array $ids): Collection //TODO map the result to Points and return a PointsCollection
     {
         $response = $this->transport
-            ->request(
-                method: 'POST',
-                uri: "/collections/{$this->collection}/points",
+            ->post(
+                uri: "",
                 options: [
                     'json' => [
                         'ids' => $ids,
@@ -70,11 +71,7 @@ class Points
 
     private function find(int $id): Point
     {
-        $response = $this->transport
-            ->request(
-                method: 'GET',
-                uri: "/collections/{$this->collection}/points/{$id}"
-            );
+        $response = $this->transport->get( uri: "/{$id}" );
 
         if (!$response->isOK()) {
             return new Point($id);
@@ -86,9 +83,8 @@ class Points
     public function upsert(Collection $points): bool //TODO require a PointsCollection
     {
         $response = $this->transport
-            ->request(
-                method: 'PUT',
-                uri: "/collections/{$this->collection}/points",
+            ->put(
+                uri: "",
                 options: [
                     'json' => [
                         'points' => $points->toArray(),
@@ -112,9 +108,8 @@ class Points
         }
 
         $response = $this->transport
-            ->request(
-                method: 'POST',
-                uri: "/collections/{$this->collection}/points/delete",
+            ->post(
+                uri: "/delete",
                 options: $requestPayload
             );
 

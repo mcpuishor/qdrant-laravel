@@ -39,7 +39,7 @@ class QdrantTransport
         ]);
     }
 
-    public function get(): self
+    public function self(): self
     {
         return $this;
     }
@@ -55,6 +55,11 @@ class QdrantTransport
         return $this->request('POST', $this->baseUri . $uri, $options);
     }
 
+    public function get($uri): Response
+    {
+        return $this->request('GET', $this->baseUri . $uri);
+    }
+
     public function put($uri, array $options = []): Response
     {
         return $this->request('PUT', $this->baseUri . $uri, $options);
@@ -67,6 +72,11 @@ class QdrantTransport
         }
 
         return $this->request('DELETE', $this->baseUri . $uri);
+    }
+
+    public function patch($uri, array $options = []): Response
+    {
+        return $this->request('PATCH', $this->baseUri . $uri, $options);
     }
 
     public function collection(string $name): QdrantClient

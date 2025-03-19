@@ -6,9 +6,15 @@ use Mcpuishor\QdrantLaravel\QdrantTransport;
 use Mcpuishor\QdrantLaravel\DTOs\Response;
 
 beforeEach(function () {
-    $this->transport = Mockery::mock(QdrantTransport::class);
     $this->testCollectionName = 'test';
+    $this->transport = Mockery::mock(QdrantTransport::class);
     $this->query = new QdrantClient($this->transport, $this->testCollectionName);
+
+    $this->transport->shouldReceive('baseUri')
+        ->passthru()
+        ->andReturnSelf();
+
+    $this->transport->shouldReceive('put', 'post', 'delete')->passthru();
 });
 
 describe('Payloads update', function () {
