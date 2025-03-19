@@ -149,4 +149,6 @@ it('can create a parameterized integer index', function(){
         ]));
 
         $result = $this->query->indexes()->parameterized()->add($this->fieldName, FieldType::INTEGER);
+
+        expect($result)->toBeTrue();
 });
