@@ -1,6 +1,7 @@
 <?php
 namespace Mcpuishor\QdrantLaravel;
 
+use Illuminate\Http\Client\Factory as Client;
 use Illuminate\Support\ServiceProvider;
 
 class QdrantServiceProvider extends ServiceProvider
@@ -8,11 +9,17 @@ class QdrantServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton(QdrantTransport::class, function ($app) {
-            return new QdrantTransport(config('qdrant-laravel.default'));
+            return new QdrantTransport(
+                httpClient: new Client(),
+                connection: config('qdrant-laravel.default'),
+            );
         });
 
         $this->app->singleton('qdrantclient', function ($app) {
-            return new QdrantTransport(config('qdrant-laravel.default'));
+            return new QdrantTransport(
+                httpClient: new Client(),
+                connection: config('qdrant-laravel.default'),
+            );
         });
 
         $this->app->bind('qdrantschema', function ($app) {

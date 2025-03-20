@@ -1,7 +1,7 @@
 <?php
 namespace Mcpuishor\QdrantLaravel;
 
-use GuzzleHttp\Client;
+use Illuminate\Http\Client\Factory as Client;
 use Illuminate\Support\Traits\Macroable;
 use InvalidArgumentException;
 use Mcpuishor\QdrantLaravel\DTOs\Response;
@@ -10,13 +10,15 @@ class QdrantTransport
 {
     use Macroable;
 
-    protected Client $httpClient;
     protected string $endpoint;
     protected ?string $apiKey;
 
-    private $baseUri = '';
+    private string $baseUri = '';
 
-    public function __construct(string $connection = null)
+    public function __construct(
+        private Client           $httpClient,
+        private readonly ?string $connection = null,
+    )
     {
         $config = config('qdrant-laravel');
 
@@ -31,7 +33,7 @@ class QdrantTransport
         $this->endpoint = $settings['host'];
         $this->apiKey = $settings['api_key'] ?? null;
 
-        $this->httpClient = new Client([
+        $this->httpClient->globalOptions([
             'headers' => array_merge(
                 $this->apiKey ? ['Api-key' => $this->apiKey ] : [],
                 ['Content-Type' => 'application/json']
@@ -86,8 +88,11 @@ class QdrantTransport
 
     public function request(string $method, string $uri, array $options = []): Response
     {
-
-        $response = $this->httpClient->request($method, $this->endpoint . $uri, $options);
+        $response = $this->httpClient->request(
+            method: $method,
+            uri:$this->endpoint . $uri,
+            options: $options
+        );
 
         return new Response( json_decode($response->getBody()->getContents(), true) );
     }

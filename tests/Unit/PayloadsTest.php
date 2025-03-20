@@ -8,6 +8,7 @@ use Mcpuishor\QdrantLaravel\DTOs\Response;
 beforeEach(function () {
     $this->testCollectionName = 'test';
     $this->transport = Mockery::mock(QdrantTransport::class);
+
     $this->query = new QdrantClient($this->transport, $this->testCollectionName);
 
     $this->transport->shouldReceive('baseUri')
@@ -106,7 +107,7 @@ describe('Payloads clearing', function () {
 
         $result = $this->query->payloads()
             ->for( $pointsCollection->toArray() )
-            ->clearAll();
+            ->purge();
 
         expect($result)->toBeTrue();
 

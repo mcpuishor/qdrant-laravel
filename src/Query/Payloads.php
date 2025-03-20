@@ -51,7 +51,7 @@ class Payloads
         )->isOk();
     }
 
-    public function clearAll(): bool
+    public function purge(): bool
     {
         return $this->transport->post(
             uri: '/clear',
@@ -65,15 +65,26 @@ class Payloads
 
     private function sendRequest(string $method, $payload)
     {
-        return $this->transport->request(
-            method: $method,
-            uri: '',
-            options: [
-                'json' => [
-                    'points' => $this->points,
-                    'payload' => $payload,
-                ]
+        $requestOptions = [
+            'json' => [
+                'points' => $this->points,
+                'payload' => $payload,
             ]
-        )->isOk();
+        ];
+
+        $result =  match($method) {
+            'POST' => $this->transport
+                        ->post(
+                            uri:'',
+                            options: $requestOptions,
+                        ),
+            'PUT' => $this->transport
+                        ->put(
+                            uri: '',
+                            options: $requestOptions,
+                     )
+        };
+
+        return $result->isOk();
     }
 }

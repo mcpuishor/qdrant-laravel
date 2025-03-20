@@ -144,6 +144,10 @@ It returns ``true`` if the operation was successful, or ``false`` otherwise.
 ````
 It returns ``true`` if the operation was successful, or ``false`` otherwise.
 
+## Searching
+
+
+
 ## Artisan commands
 ### Creating a Collection with indexes
 ```sh
