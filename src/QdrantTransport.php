@@ -88,12 +88,12 @@ class QdrantTransport
 
     public function request(string $method, string $uri, array $options = []): Response
     {
-        $response = $this->httpClient->request(
+        $response = $this->httpClient->send(
             method: $method,
-            uri:$this->endpoint . $uri,
+            url:$this->endpoint . $uri,
             options: $options
-        );
+        )->throw();
 
-        return new Response( json_decode($response->getBody()->getContents(), true) );
+        return new Response( json_decode($response->body(), true) );
     }
 }

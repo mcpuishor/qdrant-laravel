@@ -7,13 +7,14 @@ use Mcpuishor\QdrantLaravel\Query\Payloads;
 use Mcpuishor\QdrantLaravel\Query\Points;
 use Mcpuishor\QdrantLaravel\Query\Search;
 use Mcpuishor\QdrantLaravel\Query\Vectors;
+use Mcpuishor\QdrantLaravel\Schema\Alias;
 
 class QdrantClient
 {
     use Macroable;
 
     protected QdrantTransport $transport;
-    protected string $collection;
+    protected ?string $collection;
 
     public function __construct(QdrantTransport $transport, ?string $collection=null)
     {
@@ -21,9 +22,21 @@ class QdrantClient
         $this->collection = $collection;
     }
 
+    public function collection(string $collection): self
+    {
+        $this->collection = $collection;
+
+        return $this;
+    }
+
     public function schema() : QdrantSchema
     {
         return new QdrantSchema($this->transport);
+    }
+
+    public function aliases(): Alias
+    {
+        return new Alias($this->transport);
     }
 
     public function indexes(): Indexes

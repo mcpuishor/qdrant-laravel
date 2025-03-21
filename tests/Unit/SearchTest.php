@@ -299,3 +299,115 @@ it('can return a set of results with an offset', function(){
         ->toHaveCount(3);
 });
 
+it('can return a set of results grouped by a key', function(){
+    $payloadToGroupBy = "field1";
+
+    $this->transport->shouldReceive('request')
+        ->withArgs([
+            'POST',
+            $this->searchEndpoint . '/groups',
+            ['json' => [
+                "query" => $this->vector,
+                "params" => [
+                    "hnsw_ef" => 128,
+                    "exact" => false,
+                ],
+                "group_by" => $payloadToGroupBy,
+                "group_size" => 100,
+                "limit" => 3,
+            ]]
+        ])->andReturn(new Response([
+            "result" => [
+                "groups" => [
+                    [
+                        "id" => "test1",
+                        "hits" => [
+                            [ "id" => 1, "score" => 0.81 ],
+                            [ "id" => 2, "score" => 0.75 ],
+                        ]
+                    ],
+                    [
+                        "id" => "test1",
+                        "hits" => [
+                            [ "id" => 1, "score" => 0.81 ],
+                            [ "id" => 2, "score" => 0.75 ],
+                        ]
+                    ],
+                    [
+                        "id" => "test1",
+                        "hits" => [
+                            [ "id" => 1, "score" => 0.81 ],
+                            [ "id" => 2, "score" => 0.75 ],
+                        ]
+                    ],
+                ]
+            ],
+            "status" => "ok",
+            "time" => 1
+        ]));
+
+    $result = $this->query->search()
+        ->groupBy($payloadToGroupBy)
+        ->limit(3)
+        ->vector($this->vector);
+
+    expect($result)->toBeArray()
+        ->toHaveKey('groups');
+});
+
+it('ignores offset if a search is grouped by a key', function(){
+    $payloadToGroupBy = "field1";
+
+    $this->transport->shouldReceive('request')
+        ->withArgs([
+            'POST',
+            $this->searchEndpoint . '/groups',
+            ['json' => [
+                "query" => $this->vector,
+                "params" => [
+                    "hnsw_ef" => 128,
+                    "exact" => false,
+                ],
+                "group_by" => $payloadToGroupBy,
+                "group_size" => 100,
+                "limit" => 3,
+            ]]
+        ])->andReturn(new Response([
+            "result" => [
+                "groups" => [
+                    [
+                        "id" => "test1",
+                        "hits" => [
+                            [ "id" => 1, "score" => 0.81 ],
+                            [ "id" => 2, "score" => 0.75 ],
+                        ]
+                    ],
+                    [
+                        "id" => "test1",
+                        "hits" => [
+                            [ "id" => 1, "score" => 0.81 ],
+                            [ "id" => 2, "score" => 0.75 ],
+                        ]
+                    ],
+                    [
+                        "id" => "test1",
+                        "hits" => [
+                            [ "id" => 1, "score" => 0.81 ],
+                            [ "id" => 2, "score" => 0.75 ],
+                        ]
+                    ],
+                ]
+            ],
+            "status" => "ok",
+            "time" => 1
+        ]));
+
+    $result = $this->query->search()
+        ->groupBy($payloadToGroupBy)
+        ->limit(3)
+        ->offset(100)
+        ->vector($this->vector);
+
+    expect($result)->toBeArray()
+        ->toHaveKey('groups');
+});

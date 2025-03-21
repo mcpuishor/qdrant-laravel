@@ -15,6 +15,7 @@ class Search
     private string|array $query;
 
     private int $offset = 0;
+    private array $groupBy = [];
 
     public function __construct(
         private QdrantTransport $transport,
@@ -83,6 +84,7 @@ class Search
         }
 
         $this->add( $vector );
+
         return  $this->performSearch();
     }
 
@@ -97,17 +99,31 @@ class Search
        return $this->performSearch();
     }
 
+    public function groupBy(string $payloadKey, int $groupSize = 100, array $withLookup = []): self
+    {
+        $this->groupBy = [
+            'group_by' => $payloadKey,
+            'group_size' => $groupSize,
+        ];
+
+        if ($withLookup) {
+            $this->groupBy['with_lookup'] = $withLookup;
+        }
+
+        return $this;
+    }
+
     private function performSearch(): array
     {
         $result = $this->transport->post(
-            uri: "",
+            uri: $this->groupBy ? '/groups' : '',
             options: [
                 'json' => $this->getSearchPayload(),
             ]
         );
 
         if (!$result->isOK()) {
-            throw new SearchException('Search could not be performed.'); //TODO add a more explicit message to this exception
+            throw new SearchException('Search could not be performed. Not a valid response returned from server.');
         }
 
         return $result->result();
@@ -148,7 +164,11 @@ class Search
             $searchPayload['filter'] = $this->getFilters();
         }
 
-        if ($this->offset > 0 ) {
+        if ($this->groupBy) {
+            $searchPayload = array_merge($searchPayload, $this->groupBy);
+        }
+
+        if ($this->offset > 0 && !$this->groupBy) {
             $searchPayload['offset'] = $this->offset;
         }
 
@@ -179,6 +199,19 @@ class Search
                 'json' => [
                     'searches' => $searchPayload,
                 ],
+            ]
+        )->result();
+    }
+
+    public function random(): array
+    {
+        return $this->transport->post(
+            uri: "",
+            options: [
+                'json' => [
+                    "collection_name" => $this->collection,
+                    'sample' => 'random',
+                ]
             ]
         )->result();
     }
