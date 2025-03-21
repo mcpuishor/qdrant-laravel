@@ -195,7 +195,7 @@ it('throws an exception if the point is empty', function ($vector) {
 
 it('can restrict the number of results returned', function () {
     $newLimit = 3;
-   $this->transport->shouldReceive('request')
+    $this->transport->shouldReceive('request')
        ->withArgs([
            'POST',
            $this->searchEndpoint,
@@ -253,7 +253,13 @@ it('can submit a batch of searches at once', function () {
                     ]
                 ]
             ]]
-        ])->andReturn($this->validResponse);
+        ])->andReturn(new Response(
+            [
+                'result' => [
+                    $this->validResponse->result()
+                ]
+            ]
+        ));
 
     $result = $this->query->search()->batch([
 //        $this->query->search()->must('key1', FilterConditions::MATCH, 'test1' )->add($this->vector),
@@ -264,5 +270,32 @@ it('can submit a batch of searches at once', function () {
     ]);
 
     expect($result)->toBeArray()
+        ->toHaveCount(1);
+});
+
+it('can return a set of results with an offset', function(){
+    $newLimit = 3;
+    $offset = 100;
+    $this->transport->shouldReceive('request')
+        ->withArgs([
+            'POST',
+            $this->searchEndpoint,
+            ['json' => [
+                "query" => $this->vector,
+                "params" => [
+                    "hnsw_ef" => 128,
+                    "exact" => false,
+                ],
+                "limit" => $newLimit,
+                "offset" => $offset,
+            ]]
+        ])->andReturn($this->validResponse);
+
+    $result = $this->query->search()
+        ->offset($offset)->limit($newLimit)
+        ->vector($this->vector);
+
+    expect($result)->toBeArray()
         ->toHaveCount(3);
 });
+

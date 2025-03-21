@@ -1,7 +1,6 @@
 <?php
 namespace Mcpuishor\QdrantLaravel\Query;
 use Mcpuishor\QdrantLaravel\DTOs\Point;
-use Mcpuishor\QdrantLaravel\DTOs\Response;
 use Mcpuishor\QdrantLaravel\Exceptions\SearchException;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
 use Mcpuishor\QdrantLaravel\Traits\HasFilters;
@@ -14,6 +13,8 @@ class Search
     private array $exclude = [];
     private bool $withVectors = false;
     private string|array $query;
+
+    private int $offset = 0;
 
     public function __construct(
         private QdrantTransport $transport,
@@ -64,6 +65,13 @@ class Search
         }
 
         $this->limit = $limit;
+
+        return $this;
+    }
+
+    public function offset($startOffset = 0): self
+    {
+        $this->offset = $startOffset;
 
         return $this;
     }
@@ -138,6 +146,10 @@ class Search
 
         if ($this->getFilters()) {
             $searchPayload['filter'] = $this->getFilters();
+        }
+
+        if ($this->offset > 0 ) {
+            $searchPayload['offset'] = $this->offset;
         }
 
         return $searchPayload;
