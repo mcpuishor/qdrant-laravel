@@ -8,6 +8,8 @@ use Mcpuishor\QdrantLaravel\Query\Points;
 use Mcpuishor\QdrantLaravel\Query\Search;
 use Mcpuishor\QdrantLaravel\Query\Vectors;
 use Mcpuishor\QdrantLaravel\Schema\Alias;
+use Mcpuishor\QdrantLaravel\Schema\Info;
+use Mcpuishor\QdrantLaravel\Schema\Schema;
 
 class QdrantClient
 {
@@ -29,9 +31,14 @@ class QdrantClient
         return $this;
     }
 
-    public function schema() : QdrantSchema
+    public function info()
     {
-        return new QdrantSchema($this->transport);
+        return new Info($this->transport, $this->collection);
+    }
+
+    public function schema() : Schema
+    {
+        return new Schema($this->transport);
     }
 
     public function aliases(): Alias

@@ -4,7 +4,7 @@ use Illuminate\Support\Collection;
 use Mcpuishor\QdrantLaravel\DTOs\Response;
 use Mcpuishor\QdrantLaravel\Exceptions\FailedToCreateCollectionException;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
-use Mcpuishor\QdrantLaravel\QdrantSchema;
+use Mcpuishor\QdrantLaravel\Schema\Schema;
 
 beforeEach(function () {
     $this->transport = Mockery::mock(QdrantTransport::class);
@@ -13,7 +13,7 @@ beforeEach(function () {
         ->shouldReceive('baseUri', 'put', 'post', 'delete', 'get', 'patch')
         ->passthru();
 
-    $this->qdrantSchema = new QdrantSchema(transport: $this->transport);
+    $this->qdrantSchema = new Schema(transport: $this->transport);
 });
 
 describe('Listing', function(){

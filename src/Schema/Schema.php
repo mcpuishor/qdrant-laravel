@@ -1,15 +1,16 @@
 <?php
-namespace Mcpuishor\QdrantLaravel;
+namespace Mcpuishor\QdrantLaravel\Schema;
 
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Traits\Macroable;
+use InvalidArgumentException;
 use Mcpuishor\QdrantLaravel\DTOs\Collection\Info;
 use Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
-use InvalidArgumentException;
-use Illuminate\Support\Traits\Macroable;
 use Mcpuishor\QdrantLaravel\Exceptions\FailedToCreateCollectionException;
+use Mcpuishor\QdrantLaravel\QdrantTransport;
 
-class QdrantSchema
+class Schema
 {
     use Macroable;
 
@@ -69,20 +70,6 @@ class QdrantSchema
         $response = $this->transport->get( "/{$name}/exists");
 
         return $response->result()['exists'];
-    }
-
-    public function aliases(string $collectionName): array
-    {
-        $response = $this->transport->get( "/{$collectionName}/aliases");
-
-        return $response->result()['aliases'] ?? [];
-    }
-
-    public function info(string $name): Info
-    {
-        $response = $this->transport->get( "/{$name}");
-
-        return Info::fromArray($response->result());
     }
 
     public function update(string $name, array $vectors = [], array $options = []): bool

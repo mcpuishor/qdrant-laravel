@@ -4,7 +4,7 @@ namespace YourVendor\Qdrant\Commands;
 use Illuminate\Console\Command;
 use Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
 use Mcpuishor\QdrantLaravel\Enums\FieldType;
-use Mcpuishor\QdrantLaravel\QdrantSchema;
+use Mcpuishor\QdrantLaravel\Schema\Schema;
 
 class QdrantMigrate extends Command
 {
@@ -36,7 +36,7 @@ class QdrantMigrate extends Command
 
         $this->info("Creating collection: {$collectionName}");
 
-        QdrantSchema::create($collectionName, [
+        Schema::create($collectionName, [
             'vector' => [
                 'size' => (int) $vectorSize,
                 'distance' => $distanceMetric
@@ -48,7 +48,7 @@ class QdrantMigrate extends Command
                 $this->error("Invalid field type for {$field}: {$type}. Allowed: " . implode(', ', FieldType::values()));
                 continue;
             }
-            QdrantSchema::addIndex($collectionName, $field, FieldType::from($type));
+            Schema::addIndex($collectionName, $field, FieldType::from($type));
             $this->info("Index created for field: {$field} ({$type}).");
         }
 
@@ -60,11 +60,11 @@ class QdrantMigrate extends Command
         $this->info("Rolling back migration for collection: {$collectionName}");
 
         foreach ($indexes as $field => $type) {
-            QdrantSchema::dropIndex($collectionName, $field);
+            Schema::dropIndex($collectionName, $field);
             $this->info("Index dropped for field: {$field}.");
         }
 
-        QdrantSchema::drop($collectionName);
+        Schema::drop($collectionName);
         $this->info("Collection {$collectionName} deleted.");
     }
 }

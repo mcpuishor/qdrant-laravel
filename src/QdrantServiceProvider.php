@@ -3,6 +3,7 @@ namespace Mcpuishor\QdrantLaravel;
 
 use Illuminate\Http\Client\Factory as Client;
 use Illuminate\Support\ServiceProvider;
+use Mcpuishor\QdrantLaravel\Schema\Schema;
 
 class QdrantServiceProvider extends ServiceProvider
 {
@@ -22,7 +23,7 @@ class QdrantServiceProvider extends ServiceProvider
         });
 
         $this->app->bind('qdrantschema', function ($app) {
-            return new QdrantSchema(
+            return new Schema(
                 app()->make(QdrantTransport::class)
             );
         });
