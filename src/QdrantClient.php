@@ -5,6 +5,7 @@ use Illuminate\Support\Traits\Macroable;
 use Mcpuishor\QdrantLaravel\Query\Indexes;
 use Mcpuishor\QdrantLaravel\Query\Payloads;
 use Mcpuishor\QdrantLaravel\Query\Points;
+use Mcpuishor\QdrantLaravel\Query\Recommend;
 use Mcpuishor\QdrantLaravel\Query\Search;
 use Mcpuishor\QdrantLaravel\Query\Vectors;
 use Mcpuishor\QdrantLaravel\Schema\Alias;
@@ -69,5 +70,10 @@ class QdrantClient
     public function search(int $hnsw_ef = 128, bool $exact = false, int $limit = 10)
     {
         return new Search($this->transport, $this->collection, $hnsw_ef, $exact, $limit);
+    }
+
+    public function recommend(int $hnsw_ef = 128, bool $exact = false, int $limit = 10)
+    {
+        return new Recommend($this->transport, $this->collection, $hnsw_ef, $exact, $limit);
     }
 }

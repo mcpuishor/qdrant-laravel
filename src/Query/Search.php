@@ -12,17 +12,17 @@ class Search
     private array $only = [];
     private array $exclude = [];
     private bool $withVectors = false;
-    private string|array $query;
+    protected string|array $query;
 
     private int $offset = 0;
     private array $groupBy = [];
 
     public function __construct(
-        private QdrantTransport $transport,
-        private string $collection,
-        private int $hnsw_ef,
-        private bool $exact,
-        private int $limit,
+        protected QdrantTransport $transport,
+        protected string $collection,
+        protected int $hnsw_ef,
+        protected bool $exact,
+        protected int $limit,
     ){
         $this->transport = $this->transport->baseUri("/collections/{$this->collection}/points/query");
     }
@@ -113,7 +113,7 @@ class Search
         return $this;
     }
 
-    private function performSearch(): array
+    protected function performSearch(): array
     {
         $result = $this->transport->post(
             uri: $this->groupBy ? '/groups' : '',
