@@ -8,6 +8,7 @@ use Mcpuishor\QdrantLaravel\Query\Recommend;
 
 beforeEach(function () {
     $this->collection = 'test';
+    $this->vector = [1, 2, 3];
 
     $this->transport = Mockery::mock(QdrantTransport::class);
     $this->transport->shouldReceive('baseUri')
@@ -17,6 +18,16 @@ beforeEach(function () {
     $this->searchEndpoint = "/collections/{$this->collection}/points/query";
 
     $this->query = new QdrantClient($this->transport, $this->collection);
+
+    $this->validResponse = new Response([
+        "result"=> [
+            [ "id"=> 10, "score"=> 0.81 ],
+            [ "id"=> 14, "score"=> 0.75 ],
+            [ "id"=> 11, "score"=> 0.73 ]
+        ],
+        "status"=> "ok",
+        "time"=> 0.001
+    ]);
 });
 
 
@@ -50,15 +61,7 @@ it('can perform a basic recommend search with positives', function () {
                ]
             ]
         ])
-    ->andReturn(new Response([
-            "result"=> [
-                [ "id"=> 10, "score"=> 0.81 ],
-                [ "id"=> 14, "score"=> 0.75 ],
-                [ "id"=> 11, "score"=> 0.73 ]
-              ],
-              "status"=> "ok",
-              "time"=> 0.001
-        ]));
+    ->andReturn($this->validResponse);
 
     $recommend = $this->query->recommend()
         ->positive($positives)
@@ -91,15 +94,7 @@ it('can perform a basic recommend search with negatives', function () {
                 ]
             ]
         ])
-        ->andReturn(new Response([
-            "result"=> [
-                [ "id"=> 10, "score"=> 0.81 ],
-                [ "id"=> 14, "score"=> 0.75 ],
-                [ "id"=> 11, "score"=> 0.73 ]
-            ],
-            "status"=> "ok",
-            "time"=> 0.001
-        ]));
+        ->andReturn($this->validResponse);
 
     $recommend = $this->query->recommend()
         ->negative($negatives)
@@ -132,19 +127,46 @@ it('can perform a basic recommend search with a different strategy', function ()
                 ]
             ]
         ])
-        ->andReturn(new Response([
-            "result"=> [
-                [ "id"=> 10, "score"=> 0.81 ],
-                [ "id"=> 14, "score"=> 0.75 ],
-                [ "id"=> 11, "score"=> 0.73 ]
-            ],
-            "status"=> "ok",
-            "time"=> 0.001
-        ]));
+        ->andReturn($this->validResponse);
     $recommend = $this->query->recommend()
         ->positive($positives)
         ->strategy($strategy)
         ->get();
 
     expect($recommend)->toBeArray()->toHaveCount(3);
+});
+
+it('can submit a batch of recommendations at once', function () {
+
+    $this->transport->shouldReceive('request')
+        ->withArgs([
+            'POST',
+            $this->searchEndpoint .'/batch',
+            ['json' => [
+                'searches' => [
+                    [
+                        'query' => $this->vector,
+                        "params" => [
+                            "hnsw_ef" => 128,
+                            "exact" => false,
+                        ],
+                        "limit" => 10,
+                        "with_vectors" => true,
+                        "with_payload" => [
+                            "exclude" => ['test1', 'city']
+                        ],
+                    ]
+                ]
+            ]]
+        ])->andReturn($this->validResponse);
+
+    $result = $this->query->search()->batch([
+        $this->query->recommend()
+            ->exclude(['test1', 'city'])
+            ->withVectors()
+            ->add($this->vector),
+    ]);
+
+    expect($result)->toBeArray()
+        ->toHaveCount(3);
 });
