@@ -17,6 +17,8 @@ class Search
     private int $offset = 0;
     private array $groupBy = [];
 
+    private ?string $using = null;
+
     public function __construct(
         protected QdrantTransport $transport,
         protected string $collection,
@@ -74,6 +76,12 @@ class Search
     {
         $this->offset = $startOffset;
 
+        return $this;
+    }
+
+    public function using(string $using): self
+    {
+        $this->using = $using;
         return $this;
     }
 
@@ -139,6 +147,10 @@ class Search
             ],
             "limit" => $this->limit,
         ];
+
+        if($this->using) {
+            $searchPayload['using'] = $this->using;
+        }
 
         if ($this->withPayload) {
             $searchPayload['with_payload'] = true;
