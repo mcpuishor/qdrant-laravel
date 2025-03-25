@@ -3,9 +3,10 @@ namespace Mcpuishor\QdrantLaravel\Enums;
 
 enum DistanceMetric: string
 {
-    case COSINE = 'cosine';
-    case EUCLIDEAN = 'euclidean';
-    case DOT = 'dot';
+    case COSINE = 'Cosine';
+    case EUCLIDEAN = 'Euclid';
+    case DOT = 'Dot';
+    case MANHATTAN = 'Manhattan';
 
     public static function values(): array
     {

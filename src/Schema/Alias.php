@@ -10,10 +10,9 @@ class Alias
     private array $actions = [];
 
     public function __construct(
-        protected QdrantTransport $transport
-    ){
-        $this->transport = $this->transport->baseUri("/collections/aliases");
-    }
+        protected QdrantTransport $transport,
+        private ?string $collectionName = null,
+    ){}
 
     public function add(string $alias, string $collection): self
     {
@@ -63,10 +62,10 @@ class Alias
         return $response->result();
     }
 
-    public function all(?string $collectionName=null): Collection
+    public function get(): Collection
     {
         $response = $this->transport
-            ->baseUri($collectionName ? "/collections/{$collectionName}" : "")
+            ->baseUri($this->collectionName ? "/collections/{$this->collectionName}" : "")
             ->get("/aliases");
 
         return collect($response->result()["aliases"] ?? []);

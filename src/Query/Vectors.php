@@ -20,9 +20,7 @@ class Vectors
         return $this->transport->put(
             uri: "",
             options: [
-                'json' => [
-                    "points" => $collection->toArray(),
-                ]
+                "points" => $collection->toArray(),
             ]
         )->isOk();
     }
@@ -32,9 +30,7 @@ class Vectors
         return $this->transport->post(
             uri: "/delete",
             options: [
-                'json' => [
-                    'points' => $ids,
-                ]
+                'points' => $ids,
             ]
         )->isOk();
     }

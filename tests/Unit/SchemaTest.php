@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Collection;
 use Mcpuishor\QdrantLaravel\DTOs\Response;
+use Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
 use Mcpuishor\QdrantLaravel\Exceptions\FailedToCreateCollectionException;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
 use Mcpuishor\QdrantLaravel\Schema\Schema;
@@ -10,16 +11,18 @@ beforeEach(function () {
     $this->transport = Mockery::mock(QdrantTransport::class);
 
     $this->transport
-        ->shouldReceive('baseUri', 'put', 'post', 'delete', 'get', 'patch')
+        ->shouldReceive('baseUri')
         ->passthru();
+
+    Http::fake();
 
     $this->qdrantSchema = new Schema(transport: $this->transport);
 });
 
 describe('Listing', function(){
     it('can list all collections', function () {
-        $this->transport->shouldReceive('request')
-            ->withArgs(['GET', '/collections'])
+        $this->transport->shouldReceive('get')
+            ->withArgs([''])
             ->andReturn(
                 new Response ([
                     "result" => [
@@ -40,10 +43,9 @@ describe('Listing', function(){
 
     it('can check if a collection exists', function(){
         $collection = 'testcollection';
-        $this->transport->shouldReceive('request')
+        $this->transport->shouldReceive('get')
             ->withArgs([
-                'GET',
-                "/collections/$collection/exists"
+                "/$collection/exists"
             ])
             ->andReturn(
                 new Response(
@@ -61,16 +63,65 @@ describe('Listing', function(){
 
         expect($result)->toBeTrue();
     });
+
+    it('returns false for a non existing collection', function(){
+        $collection = 'testcollection';
+        $this->transport->shouldReceive('get')
+            ->withArgs([
+                "/$collection/exists"
+            ])
+            ->andReturn(
+                new Response(
+                    [
+                        'time' => 0.002,
+                        'status' => 'ok',
+                        'result' => [
+                            'exists' => false,
+                        ]
+                    ]
+                )
+            );
+
+        $result = $this->qdrantSchema->exists($collection);
+
+        expect($result)->toBeFalse();
+    });
+
+    it('throws an error if the response is not valid', function(){
+        $collection = 'testcollection';
+        $this->transport->shouldReceive('get')
+            ->withArgs([
+                "/$collection/exists"
+            ])
+            ->andReturn(
+                new Response(
+                    [
+                        'time' => 0.002,
+                        'status' => 'ok',
+                        'result' => [
+                            'status' => 'error',
+                        ]
+                    ]
+                )
+            );
+        $this->qdrantSchema->exists($collection);
+    })->throws(InvalidArgumentException::class, 'Error in response from Qdrant server.');
+
 });
 
 describe('Collections', function() {
-    it('can create a new collection in single mode', function () {
+    it('can create a new collection in single mode', closure: function () {
+
         $testCollectionName = 'testcollection';
-        $this->transport->shouldReceive('request')
+        $this->transport->shouldReceive('put')
             ->withArgs([
-                'PUT',
-                '/collections/' . $testCollectionName,
-                ['size' => 1000, 'distance' => 'cosine']
+                 "/". $testCollectionName,
+                [
+                    "vectors" => [
+                        'size' => 1000,
+                        'distance' => 'Cosine'
+                    ]
+                ]
             ])
             ->andReturn(
                 new Response([
@@ -83,7 +134,7 @@ describe('Collections', function() {
         $response = $this->qdrantSchema
             ->create(
                 $testCollectionName,
-                ['size' => 1000, 'distance' => 'cosine']
+                ['size' => 1000, 'distance' => 'Cosine']
             );
 
         expect($response)->toBeTrue();
@@ -92,13 +143,14 @@ describe('Collections', function() {
 
     it('can create a new collection in multiple vectors mode', function () {
         $testCollectionName = 'testcollection';
-        $this->transport->shouldReceive('request')
+        $this->transport->shouldReceive('put')
             ->withArgs([
-                'PUT',
-                '/collections/' . $testCollectionName,
+                '/' . $testCollectionName,
                 [
-                    'vector1' => ['size' => 1000, 'distance' => 'cosine'],
-                    'vector2' => ['size' => 1000, 'distance' => 'cosine'],
+                    "vectors" => [
+                        'vector1' => ['size' => 1000, 'distance' => DistanceMetric::COSINE->value],
+                        'vector2' => ['size' => 1000, 'distance' => DistanceMetric::DOT->value],
+                    ]
                 ]
             ])
             ->andReturn(
@@ -115,8 +167,8 @@ describe('Collections', function() {
             ->create(
                 $testCollectionName,
                 [
-                    'vector1' => ['size' => 1000, 'distance' => 'cosine'],
-                    'vector2' => ['size' => 1000, 'distance' => 'cosine'],
+                    'vector1' => ['size' => 1000, 'distance' => DistanceMetric::COSINE->value],
+                    'vector2' => ['size' => 1000, 'distance' => DistanceMetric::DOT->value],
                 ]
             );
 
@@ -125,11 +177,10 @@ describe('Collections', function() {
 
     it('can update a collection', function() {
         $collectionName = 'test';
-        $this->transport->shouldReceive('request')
+        $this->transport->shouldReceive('patch')
             ->withArgs([
-                'PATCH',
-                "/collections/$collectionName",
-                ['size' => 1000, 'distance' => 'cosine']
+                "/$collectionName",
+                ['size' => 1000, 'distance' => DistanceMetric::COSINE->value],
             ])
             ->andReturn(
                new Response([
@@ -139,31 +190,30 @@ describe('Collections', function() {
                ])
             );
 
-        $result = $this->qdrantSchema->update($collectionName, ['size' => 1000, 'distance' => 'cosine']);
+        $result = $this->qdrantSchema
+                ->update($collectionName, ['size' => 1000, 'distance' => DistanceMetric::COSINE->value ]);
 
         expect($result)->toBeTrue();
     });
 
     it('throws an error if it cannot create a collection', function () {
         $collectionName = 'test';
-        $this->transport->shouldReceive('request')
+        $this->transport->shouldReceive('put')
             ->withArgs([
-                'PUT',
-                "/collections/$collectionName",
-                ['size' => 1000, 'distance' => 'cosine']
+                "/$collectionName",
+                ["vectors" => ['size' => 1000, 'distance' => DistanceMetric::COSINE->value]],
             ])
             ->andThrow(new FailedToCreateCollectionException('Cannot create collection'));
 
-        $result = $this->qdrantSchema->create($collectionName, ['size' => 1000, 'distance' => 'cosine']);
+        $this->qdrantSchema->create($collectionName, ['size' => 1000, 'distance' => DistanceMetric::COSINE->value]);
 
     })->throws(FailedToCreateCollectionException::class, 'Cannot create collection');
 
     it('can delete a collection', function () {
         $collectionName = 'test';
-        $this->transport->shouldReceive('request')
+        $this->transport->shouldReceive('delete')
             ->withArgs([
-                "DELETE",
-                "/collections/$collectionName"
+                "/$collectionName"
             ])
             ->andReturn(
                 new Response(
@@ -181,10 +231,9 @@ describe('Collections', function() {
 
     it('cannot delete a non-existent collection', function () {
         $collectionName = 'test2';
-        $this->transport->shouldReceive('request')
+        $this->transport->shouldReceive('delete')
             ->withArgs([
-                "DELETE",
-                "/collections/$collectionName"
+                "/$collectionName"
             ])
             ->andReturn(
                 new Response(
@@ -203,10 +252,9 @@ describe('Collections', function() {
 
 describe('Failing tests', function() {
     beforeEach(function () {
-        $this->transport->shouldReceive('request')
+        $this->transport->shouldReceive('put')
             ->withSomeOfArgs([
-                'PUT',
-                '/collections/test',
+                '/test',
             ]);
     });
 
@@ -223,7 +271,7 @@ describe('Failing tests', function() {
         $this->qdrantSchema
             ->create('test', [
                 'size' => 0, //invalid option
-                'distance' => 'cosine'
+                'distance' => 'Cosine'
             ]);
 
     })->throws(\InvalidArgumentException::class, 'Invalid size metric: ');

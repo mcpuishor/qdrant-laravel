@@ -87,7 +87,7 @@ class Search
 
     public function vector(array $vector): array
     {
-        if ($vector === []) {
+        if (empty($vector)) {
             throw new SearchException('Search vector cannot be empty.');
         }
 
@@ -125,9 +125,7 @@ class Search
     {
         $result = $this->transport->post(
             uri: $this->groupBy ? '/groups' : '',
-            options: [
-                'json' => $this->getSearchPayload(),
-            ]
+            options: $this->getSearchPayload()
         );
 
         if (!$result->isOK()) {
@@ -208,9 +206,7 @@ class Search
         return $this->transport->post(
             uri: "/batch",
             options: [
-                'json' => [
-                    'searches' => $searchPayload,
-                ],
+                'searches' => $searchPayload,
             ]
         )->result();
     }
@@ -220,10 +216,8 @@ class Search
         return $this->transport->post(
             uri: "",
             options: [
-                'json' => [
-                    "collection_name" => $this->collection,
-                    'sample' => 'random',
-                ]
+                "collection_name" => $this->collection,
+                'sample' => 'random',
             ]
         )->result();
     }

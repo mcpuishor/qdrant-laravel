@@ -43,33 +43,26 @@ class Points
         return $this;
     }
 
-    public function get(int|string|array $ids): Point|Collection
+    public function get(array $ids): Collection
     {
-        if (is_array($ids)) {
-            return $this->getPointsById($ids);
+        if (empty($ids)) {
+            throw new \InvalidArgumentException("ids must be an array");
         }
 
-        return $this->find($ids);
-    }
-
-    private function getPointsById(array $ids): Collection //TODO map the result to Points and return a PointsCollection
-    {
         $response = $this->transport
             ->post(
                 uri: "",
                 options: [
-                    'json' => [
-                        'ids' => $ids,
-                        'with_payload' => $this->withPayload,
-                        'with_vector' => $this->withVector,
-                    ],
+                    'ids' => $ids,
+                    'with_payload' => $this->withPayload,
+                    'with_vector' => $this->withVector,
                 ]
             );
 
         return collect($response->result() ?? []);
     }
 
-    private function find(int $id): Point
+    public function find(int $id): Point
     {
         $response = $this->transport->get( uri: "/{$id}" );
 
@@ -77,7 +70,7 @@ class Points
             return new Point($id);
         }
 
-        return new Point(...$response->result()[0]);
+        return new Point(...$response->result());
     }
 
     public function upsert(Collection $points): bool //TODO require a PointsCollection
@@ -86,9 +79,7 @@ class Points
             ->put(
                 uri: "",
                 options: [
-                    'json' => [
-                        'points' => $points->toArray(),
-                    ],
+                    'points' => $points->toArray(),
                 ]
             );
 
@@ -98,13 +89,11 @@ class Points
     public function delete(array $ids): bool
     {
         $requestPayload = [
-            'json' => [
-                'points' => $ids,
-            ]
+            'points' => $ids,
         ];
 
         if ($this->getFilters()) {
-            $requestPayload['json']['filter'] = $this->getFilters();
+            $requestPayload['filter'] = $this->getFilters();
         }
 
         $response = $this->transport

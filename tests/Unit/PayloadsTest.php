@@ -14,25 +14,21 @@ beforeEach(function () {
     $this->transport->shouldReceive('baseUri')
         ->passthru()
         ->andReturnSelf();
-
-    $this->transport->shouldReceive('put', 'post', 'delete')->passthru();
 });
 
 describe('Payloads update', function () {
-    it('can set the payload of a point', function (PointsCollection $pointsCollection) {
+    it('can set the payload for a point', function (PointsCollection $pointsCollection) {
         $updatedPayload = [
             'property1' => 'test',
             'property2' => 'test2',
         ];
 
-        $this->transport->shouldReceive('request')
+        $this->transport->shouldReceive('post')
             ->withArgs([
-                'POST',
-                "/collections/{$this->testCollectionName}/points/payload",
-                ['json' => [
+                "",
+                [
                     'points' => $pointsCollection->toArray(),
                     'payload' => $updatedPayload,
-                    ]
                 ]
             ])
             ->andReturn( new Response([
@@ -56,14 +52,12 @@ describe('Payloads update', function () {
 describe('Payloads clearing', function () {
     it('can clear the payload keys for points by ID', function (PointsCollection $pointsCollection) {
         $keysToDelete = ['property1', 'property2',];
-        $this->transport->shouldReceive('request')
+        $this->transport->shouldReceive('post')
             ->withArgs([
-                'POST',
-                "/collections/{$this->testCollectionName}/points/payload/delete",
-                ['json' => [
+                "/delete",
+                [
                     'points' => $pointsCollection->toArray(),
                     'keys' => $keysToDelete,
-                    ]
                 ]
             ])
             ->andReturn( new Response([
@@ -86,13 +80,11 @@ describe('Payloads clearing', function () {
 
     it('can clear all keys for points by ID', function (PointsCollection $pointsCollection) {
         $keysToDelete = ['property1', 'property2',];
-        $this->transport->shouldReceive('request')
+        $this->transport->shouldReceive('post')
             ->withArgs([
-                'POST',
-                "/collections/{$this->testCollectionName}/points/payload/clear",
-                ['json' => [
+                "/clear",
+                [
                     'points' => $pointsCollection->toArray(),
-                    ]
                 ]
             ])
             ->andReturn( new Response([

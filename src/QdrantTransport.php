@@ -1,10 +1,11 @@
 <?php
 namespace Mcpuishor\QdrantLaravel;
 
-use Illuminate\Http\Client\Factory as Client;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Traits\Macroable;
 use InvalidArgumentException;
 use Mcpuishor\QdrantLaravel\DTOs\Response;
+use Mcpuishor\QdrantLaravel\Exceptions\FailedToCreateCollectionException;
 
 class QdrantTransport
 {
@@ -14,9 +15,9 @@ class QdrantTransport
     protected ?string $apiKey;
 
     private string $baseUri = '';
+    private $httpClient;
 
     public function __construct(
-        private Client           $httpClient,
         private readonly ?string $connection = null,
     )
     {
@@ -33,12 +34,15 @@ class QdrantTransport
         $this->endpoint = $settings['host'];
         $this->apiKey = $settings['api_key'] ?? null;
 
-        $this->httpClient->globalOptions([
-            'headers' => array_merge(
-                $this->apiKey ? ['Api-key' => $this->apiKey ] : [],
-                ['Content-Type' => 'application/json']
-            ),
-        ]);
+        $this->httpClient = Http::baseUrl($this->endpoint)
+            ->acceptJson()
+            ->asJson();
+
+        if ($this->apiKey) {
+            $this->httpClient->withHeaders([
+                'Api-key' => $this->apiKey ,
+            ]);
+        }
     }
 
     public function self(): self
@@ -54,31 +58,64 @@ class QdrantTransport
 
     public function post($uri, array $options = []): Response
     {
-        return $this->request('POST', $this->baseUri . $uri, $options);
+        $response = $this->httpClient->post(
+                url:$this->baseUri . $uri,
+                data: $options
+            );
+
+        return new Response( $response->json(), true);
     }
 
     public function get($uri): Response
     {
-        return $this->request('GET', $this->baseUri . $uri);
+        $response = $this->httpClient->get(
+                url:$this->baseUri . $uri
+            );
+
+        return new Response( $response->json(), true );
     }
 
     public function put($uri, array $options = []): Response
     {
-        return $this->request('PUT', $this->baseUri . $uri, $options);
+        $response = $this->httpClient
+            ->put(
+                url:$this->baseUri . $uri,
+                data: $options
+        );
+
+        if ($response->failed()) {
+            throw new FailedToCreateCollectionException(
+                $response->json()['status']['error'],
+                $response->status()
+            );
+        }
+
+        return new Response( $response->json(), true );
     }
 
     public function delete($uri, array $options = []): Response
     {
         if ($options !== []) {
-            return $this->request('DELETE', $this->baseUri . $uri, $options);
+            $response = $this->httpClient->delete(
+                url:$this->baseUri . $uri,
+                data: $options
+            );
+        } else {
+            $response = $this->httpClient->delete(
+                url:$this->baseUri . $uri
+            );
         }
-
-        return $this->request('DELETE', $this->baseUri . $uri);
+        return new Response( json_decode($response->json(), true) );
     }
 
     public function patch($uri, array $options = []): Response
     {
-        return $this->request('PATCH', $this->baseUri . $uri, $options);
+        $response = $this->httpClient->patch(
+            url:$this->baseUri . $uri,
+            data: $options
+        );
+
+        return new Response( json_decode($response->json(), true) );
     }
 
     public function collection(string $name): QdrantClient
@@ -86,14 +123,8 @@ class QdrantTransport
         return new QdrantClient($this, $name);
     }
 
-    public function request(string $method, string $uri, array $options = []): Response
+    public function getBaseUri()
     {
-        $response = $this->httpClient->send(
-            method: $method,
-            url:$this->endpoint . $uri,
-            options: $options
-        )->throw();
-
-        return new Response( json_decode($response->body(), true) );
+        return $this->baseUri;
     }
 }

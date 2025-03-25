@@ -43,10 +43,8 @@ class Payloads
         return $this->transport->post(
             uri: '/delete',
             options: [
-                'json' => [
-                    'points' => $this->points,
-                    'keys' => $keys,
-                ]
+                'points' => $this->points,
+                'keys' => $keys,
             ]
         )->isOk();
     }
@@ -56,9 +54,7 @@ class Payloads
         return $this->transport->post(
             uri: '/clear',
             options: [
-                'json' => [
-                    'points' => $this->points,
-                ]
+                'points' => $this->points,
             ]
         )->isOk();
     }
@@ -66,10 +62,8 @@ class Payloads
     private function sendRequest(string $method, $payload)
     {
         $requestOptions = [
-            'json' => [
-                'points' => $this->points,
-                'payload' => $payload,
-            ]
+            'points' => $this->points,
+            'payload' => $payload,
         ];
 
         $result =  match($method) {

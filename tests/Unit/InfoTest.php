@@ -7,16 +7,16 @@ use Mcpuishor\QdrantLaravel\QdrantTransport;
 
 
 it('can retrieve the information about a collection', function ($infoResult) {
-    $collection = 'test';
     $transport = Mockery::mock(QdrantTransport::class);
+    $collection = 'test';
 
     $transport
-        ->shouldReceive('baseUri', 'put', 'post', 'delete', 'get', 'patch')
+        ->shouldReceive('baseUri')
         ->passthru();
 
-    $transport->shouldReceive('request')
+    $transport->shouldReceive('get')
         ->once()
-        ->withArgs(['GET', '/collections/' . $collection])
+        ->withArgs(['/' . $collection])
         ->andReturn(new Response($infoResult));
 
     $client = new QdrantClient($transport,  $collection);

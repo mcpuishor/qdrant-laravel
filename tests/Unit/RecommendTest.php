@@ -14,8 +14,6 @@ beforeEach(function () {
     $this->transport->shouldReceive('baseUri')
         ->passthru()
         ->andReturnSelf();
-    $this->transport->shouldReceive('put', 'post', 'delete', 'get')->passthru();
-    $this->searchEndpoint = "/collections/{$this->collection}/points/query";
 
     $this->query = new QdrantClient($this->transport, $this->collection);
 
@@ -40,25 +38,22 @@ it('can instantiate a recommend search', function () {
 it('can perform a basic recommend search with positives', function () {
     $positives = '123';
 
-    $this->transport->shouldReceive('request')
+    $this->transport->shouldReceive('post')
         ->once()
         ->withArgs([
-            'POST',
-            $this->searchEndpoint,
+           "",
             [
-               "json" => [
-                   "query" => [
-                       'recommend' => [
-                           'positive' => [$positives],
-                           'strategy' => AverageVectorStrategy::AVERAGEVECTOR->value,
-                       ],
+               "query" => [
+                   'recommend' => [
+                       'positive' => [$positives],
+                       'strategy' => AverageVectorStrategy::AVERAGEVECTOR->value,
                    ],
-                   "params" => [
-                       "hnsw_ef" => 128,
-                       "exact" => false,
-                   ],
-                   "limit" => 10,
-               ]
+               ],
+               "params" => [
+                   "hnsw_ef" => 128,
+                   "exact" => false,
+               ],
+               "limit" => 10,
             ]
         ])
     ->andReturn($this->validResponse);
@@ -73,25 +68,22 @@ it('can perform a basic recommend search with positives', function () {
 it('can perform a basic recommend search with negatives', function () {
     $negatives = 'a8b57c3e-4d19-4519-9c0b-c71956ba0506';
 
-    $this->transport->shouldReceive('request')
+    $this->transport->shouldReceive('post')
         ->once()
         ->withArgs([
-            'POST',
-            $this->searchEndpoint,
+            "",
             [
-                "json" => [
-                    "query" => [
-                        'recommend' => [
-                            'negative' => [$negatives],
-                            'strategy' => AverageVectorStrategy::AVERAGEVECTOR->value,
-                        ],
+                "query" => [
+                    'recommend' => [
+                        'negative' => [$negatives],
+                        'strategy' => AverageVectorStrategy::AVERAGEVECTOR->value,
                     ],
-                    "params" => [
-                        "hnsw_ef" => 128,
-                        "exact" => false,
-                    ],
-                    "limit" => 10,
-                ]
+                ],
+                "params" => [
+                    "hnsw_ef" => 128,
+                    "exact" => false,
+                ],
+                "limit" => 10,
             ]
         ])
         ->andReturn($this->validResponse);
@@ -106,25 +98,22 @@ it('can perform a basic recommend search with negatives', function () {
 it('can perform a basic recommend search with a different strategy', function () {
     $positives = '123';
     $strategy = AverageVectorStrategy::BESTSCORE;
-    $this->transport->shouldReceive('request')
+    $this->transport->shouldReceive('post')
         ->once()
         ->withArgs([
-            'POST',
-            $this->searchEndpoint,
+            "",
             [
-                "json" => [
-                    "query" => [
-                        'recommend' => [
-                            'positive' => [$positives],
-                            'strategy' => $strategy->value,
-                        ]
-                    ],
-                    "params" => [
-                        "hnsw_ef" => 128,
-                        "exact" => false,
-                    ],
-                    "limit" => 10,
-                ]
+                "query" => [
+                    'recommend' => [
+                        'positive' => [$positives],
+                        'strategy' => $strategy->value,
+                    ]
+                ],
+                "params" => [
+                    "hnsw_ef" => 128,
+                    "exact" => false,
+                ],
+                "limit" => 10,
             ]
         ])
         ->andReturn($this->validResponse);
@@ -138,24 +127,22 @@ it('can perform a basic recommend search with a different strategy', function ()
 
 it('can submit a batch of recommendations at once', function () {
 
-    $this->transport->shouldReceive('request')
+    $this->transport->shouldReceive('post')
         ->withArgs([
-            'POST',
-            $this->searchEndpoint .'/batch',
-            ['json' => [
-                'searches' => [
-                    [
-                        'query' => $this->vector,
-                        "params" => [
-                            "hnsw_ef" => 128,
-                            "exact" => false,
-                        ],
-                        "limit" => 10,
-                        "with_vectors" => true,
-                        "with_payload" => [
-                            "exclude" => ['test1', 'city']
-                        ],
-                    ]
+            '/batch',
+            [
+            'searches' => [
+                [
+                    'query' => $this->vector,
+                    "params" => [
+                        "hnsw_ef" => 128,
+                        "exact" => false,
+                    ],
+                    "limit" => 10,
+                    "with_vectors" => true,
+                    "with_payload" => [
+                        "exclude" => ['test1', 'city']
+                    ],
                 ]
             ]]
         ])->andReturn($this->validResponse);

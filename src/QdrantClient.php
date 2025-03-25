@@ -44,7 +44,7 @@ class QdrantClient
 
     public function aliases(): Alias
     {
-        return new Alias($this->transport);
+        return new Alias($this->transport, $this->collection);
     }
 
     public function indexes(): Indexes

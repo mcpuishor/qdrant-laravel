@@ -6,17 +6,17 @@ use Mcpuishor\QdrantLaravel\DTOs\Response;
 
 beforeEach(function () {
     $this->transport = Mockery::mock(QdrantTransport::class);
-    $this->transport->shouldReceive('baseUri')
+
+    $this->transport->shouldReceive('baseUri', 'getBaseUri')
         ->passthru()
         ->andReturnSelf();
-    $this->transport->shouldReceive('put', 'post', 'delete', 'get')->passthru();
-    $this->query = new QdrantClient($this->transport, 'test');
+
+    $this->query = new QdrantClient($this->transport);
 });
 
 it('can retrieve all aliases', function () {
-    $this->transport->shouldReceive('request')->once()
+    $this->transport->shouldReceive('get')->once()
         ->withArgs([
-            'GET',
             '/aliases',
         ])
         ->andReturn(new Response([
@@ -32,17 +32,17 @@ it('can retrieve all aliases', function () {
             ]
         ]));
 
-    $result = $this->query->aliases()->all();
+    $result = $this->query->aliases()->get();
 
-    expect($result)->toBeCollection();
+    expect($result)->toBeCollection()
+        ->and($this->transport->getBaseUri())->toBe("");
 });
 
 it('can retrieve aliases for a collection', function () {
     $testCollection = 'test';
-    $this->transport->shouldReceive('request')->once()
+    $this->transport->shouldReceive('get')->once()
         ->withArgs([
-            'GET',
-            '/collections/'. $testCollection . '/aliases',
+            '/aliases',
         ])
         ->andReturn(new Response([
             "result" => [
@@ -57,7 +57,8 @@ it('can retrieve aliases for a collection', function () {
             ]
         ]));
 
-    $result = $this->query->aliases()->all($testCollection);
+    $result = $this->query->collection($testCollection)->aliases()->get();
 
-    expect($result)->toBeCollection();
+    expect($result)->toBeCollection()
+        ->and($this->transport->getBaseUri())->toBe("/collections/$testCollection");
 });

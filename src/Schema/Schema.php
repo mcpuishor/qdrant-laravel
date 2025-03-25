@@ -41,11 +41,14 @@ class Schema
         }
 
         try {
-            $response =  $this->transport
-                        ->put(
-                            uri: "/{$name}",
-                             options: $vectors + $options
-                        );
+        $response =  $this->transport
+                    ->put(
+                        uri: "/{$name}",
+                         options: [
+                             'vectors' => $vectors,
+                             ...$options,
+                        ]
+                    );
         } catch (ClientException $e) {
             $error = json_decode($e->getResponse()->getBody()->getContents());
             throw new FailedToCreateCollectionException($error->status->error, $e->getCode());
@@ -69,7 +72,7 @@ class Schema
     {
         $response = $this->transport->get( "/{$name}/exists");
 
-        return $response->result()['exists'];
+        return $response->result()['exists'] ?? throw new InvalidArgumentException("Error in response from Qdrant server.");
     }
 
     public function update(string $name, array $vectors = [], array $options = []): bool

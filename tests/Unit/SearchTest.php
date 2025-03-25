@@ -14,14 +14,10 @@ beforeEach(function () {
     $this->fieldName = 'field';
     $this->transport = Mockery::mock(QdrantTransport::class);
 
-    $this->transport
-        ->shouldReceive('baseUri', 'put', 'post', 'delete', 'get', 'patch')
+    $this->transport->shouldReceive('baseUri')
         ->passthru();
 
     $this->query = new QdrantClient($this->transport, $this->testCollectionName);
-
-    $this->searchEndpoint = "/collections/{$this->testCollectionName}/points/query";
-
     $this->vector = [1, 2, 3];
 
     $this->validResponse = new Response([
@@ -42,18 +38,14 @@ it('creates an instance of Query class', function () {
 });
 
 it('can perform a simple search by vector', function (){
-    $this->transport->shouldReceive('request')
+    $this->transport->shouldReceive('post')
         ->withArgs([
-            'POST',
-            $this->searchEndpoint,
-            ['json' => [
+            "",
+            [
                 'query' => $this->vector,
-                "params" => [
-                    "hnsw_ef" => 128,
-                    "exact" => false,
-                ],
+                "params" => [ "hnsw_ef" => 128,  "exact" => false, ],
                 "limit" => 10,
-            ]]
+            ]
         ])
         ->andReturn($this->validResponse);
 
@@ -65,18 +57,17 @@ it('can perform a simple search by vector', function (){
 });
 
 it('throws an exception if the search cannot be performed', function () {
-    $this->transport->shouldReceive('request')
+    $this->transport->shouldReceive('post')
         ->withArgs([
-            'POST',
-            $this->searchEndpoint,
-            ['json' => [
+            "",
+            [
                 'query' => $this->vector,
                 "params" => [
                     "hnsw_ef" => 128,
                     "exact" => false,
                 ],
                 "limit" => 10,
-            ]]
+            ]
         ])
         ->andReturn(new Response([
             'status' => 'error',
@@ -89,12 +80,11 @@ it('throws an exception if the search cannot be performed', function () {
 
 it('can add a filter to the search query', function (string $term, FilterConditions $condition, string $value) {
 
-    $this->transport->shouldReceive('request')
+    $this->transport->shouldReceive('post')
         ->once()
         ->withArgs([
-            "POST",
-            $this->searchEndpoint,
-            ['json' => [
+            "",
+            [
                 "query" => $this->vector,
                 "params" => [
                     "hnsw_ef" => 128,
@@ -110,8 +100,8 @@ it('can add a filter to the search query', function (string $term, FilterConditi
                             ],
                        ],
                     ]
-                ],
-            ]]
+                ]
+            ]
         ])->andReturn($this->validResponse);
 
 
@@ -174,9 +164,7 @@ it('can exclude fields from the payload from the return', function(){
 });
 
 it('throws an exception if the vector is not provided', function ($vector) {
-    $this->transport->shouldReceive('request')
-        ->withAnyArgs()
-        ->never();
+    $this->transport->shouldnotHaveBeenCalled();
 
     $this->query->search()->vector($vector);
 })->with([
@@ -184,9 +172,7 @@ it('throws an exception if the vector is not provided', function ($vector) {
 ])->throws(SearchException::class, 'Search vector cannot be empty.');
 
 it('throws an exception if the point is empty', function ($vector) {
-    $this->transport->shouldReceive('request')
-        ->withAnyArgs()
-        ->never();
+    $this->transport->shouldnotHaveBeenCalled();
 
     $this->query->search()->point(new Point( id: 1, vector: $vector ));
 })->with([
@@ -195,18 +181,17 @@ it('throws an exception if the point is empty', function ($vector) {
 
 it('can restrict the number of results returned', function () {
     $newLimit = 3;
-    $this->transport->shouldReceive('request')
+    $this->transport->shouldReceive('post')
        ->withArgs([
-           'POST',
-           $this->searchEndpoint,
-           ['json' => [
+           "",
+           [
                "query" => $this->vector,
                "params" => [
                    "hnsw_ef" => 128,
                    "exact" => false,
                ],
                "limit" => $newLimit,
-           ]]
+           ]
        ])->andReturn($this->validResponse);
 
    $result = $this->query->search()->limit($newLimit)->vector($this->vector);
@@ -216,43 +201,38 @@ it('can restrict the number of results returned', function () {
 });
 
 it('throws an exception if the limit is not a positive integer', function () {
-    $this->transport->shouldReceive('request')
-        ->withAnyArgs()
-        ->never();
+    $this->transport->shouldNotHaveBeenCalled();
 
     $this->query->search()->limit(-1);
 })->throws(SearchException::class, 'Limit must be greater than 0.');
 
 it('throws an exception if the batch is empty', function () {
-    $this->transport->shouldReceive('request')->never();
+    $this->transport->shouldnotHaveBeenCalled();
 
     $this->query->search()->batch([]);
 })->throws(SearchException::class, 'Search array cannot be empty.');
 
-
-
 it('can submit a batch of searches at once', function () {
 
-    $this->transport->shouldReceive('request')
+    $this->transport->shouldReceive('post')
         ->withArgs([
-            'POST',
-            $this->searchEndpoint .'/batch',
-            ['json' => [
-                'searches' => [
-                    [
-                        'query' => $this->vector,
-                        "params" => [
-                            "hnsw_ef" => 128,
-                            "exact" => false,
-                        ],
-                        "limit" => 10,
-                        "with_vectors" => true,
-                        "with_payload" => [
-                            "exclude" => ['test1', 'city']
-                        ],
-                    ]
+            '/batch',
+            [
+            'searches' => [
+                [
+                    'query' => $this->vector,
+                    "params" => [
+                        "hnsw_ef" => 128,
+                        "exact" => false,
+                    ],
+                    "limit" => 10,
+                    "with_vectors" => true,
+                    "with_payload" => [
+                        "exclude" => ['test1', 'city']
+                    ],
                 ]
-            ]]
+            ]
+            ]
         ])->andReturn(new Response(
             [
                 'result' => [
@@ -276,11 +256,10 @@ it('can submit a batch of searches at once', function () {
 it('can return a set of results with an offset', function(){
     $newLimit = 3;
     $offset = 100;
-    $this->transport->shouldReceive('request')
+    $this->transport->shouldReceive('post')
         ->withArgs([
-            'POST',
-            $this->searchEndpoint,
-            ['json' => [
+            "",
+            [
                 "query" => $this->vector,
                 "params" => [
                     "hnsw_ef" => 128,
@@ -288,7 +267,7 @@ it('can return a set of results with an offset', function(){
                 ],
                 "limit" => $newLimit,
                 "offset" => $offset,
-            ]]
+            ]
         ])->andReturn($this->validResponse);
 
     $result = $this->query->search()
@@ -302,11 +281,10 @@ it('can return a set of results with an offset', function(){
 it('can return a set of results grouped by a key', function(){
     $payloadToGroupBy = "field1";
 
-    $this->transport->shouldReceive('request')
+    $this->transport->shouldReceive('post')
         ->withArgs([
-            'POST',
-            $this->searchEndpoint . '/groups',
-            ['json' => [
+            '/groups',
+            [
                 "query" => $this->vector,
                 "params" => [
                     "hnsw_ef" => 128,
@@ -315,7 +293,7 @@ it('can return a set of results grouped by a key', function(){
                 "group_by" => $payloadToGroupBy,
                 "group_size" => 100,
                 "limit" => 3,
-            ]]
+            ]
         ])->andReturn(new Response([
             "result" => [
                 "groups" => [
@@ -358,11 +336,10 @@ it('can return a set of results grouped by a key', function(){
 it('ignores offset if a search is grouped by a key', function(){
     $payloadToGroupBy = "field1";
 
-    $this->transport->shouldReceive('request')
+    $this->transport->shouldReceive('post')
         ->withArgs([
-            'POST',
-            $this->searchEndpoint . '/groups',
-            ['json' => [
+            '/groups',
+            [
                 "query" => $this->vector,
                 "params" => [
                     "hnsw_ef" => 128,
@@ -371,7 +348,7 @@ it('ignores offset if a search is grouped by a key', function(){
                 "group_by" => $payloadToGroupBy,
                 "group_size" => 100,
                 "limit" => 3,
-            ]]
+            ]
         ])->andReturn(new Response([
             "result" => [
                 "groups" => [
@@ -416,11 +393,10 @@ it('can use a different vector than the default one', function(){
     $testVector = "test_vector";
     $newLimit = 3;
 
-    $this->transport->shouldReceive('request')
+    $this->transport->shouldReceive('post')
         ->withArgs([
-            'POST',
-            $this->searchEndpoint,
-            ['json' => [
+            "",
+            [
                 "query" => $this->vector,
                 "params" => [
                     "hnsw_ef" => 128,
@@ -428,7 +404,7 @@ it('can use a different vector than the default one', function(){
                 ],
                 "limit" => $newLimit,
                 "using" => $testVector,
-            ]]
+            ]
         ])->andReturn($this->validResponse);
 
     $result = $this->query->search()

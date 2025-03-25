@@ -11,7 +11,6 @@ class QdrantServiceProvider extends ServiceProvider
     {
         $this->app->singleton(QdrantTransport::class, function ($app) {
             return new QdrantTransport(
-                httpClient: new Client(),
                 connection: config('qdrant-laravel.default'),
             );
         });

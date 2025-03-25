@@ -50,10 +50,8 @@ class Indexes
         return $this->transport->put(
             uri: "",
             options: [
-                'json' => [
                     'field_name' => $field_name,
                     'field_schema' => $fieldSchema,
-                ]
             ]
         )->isOk();
     }
@@ -71,10 +69,8 @@ class Indexes
         return $this->transport->put(
             uri: "",
             options: [
-                'json' => [
-                    'field_name' => $field_name,
-                    "field_schema" => $fieldSchema
-                ]
+                'field_name' => $field_name,
+                "field_schema" => $fieldSchema
             ]
         )->isOk();
     }

@@ -11,7 +11,7 @@ beforeEach(function () {
     $this->transport = Mockery::mock(QdrantTransport::class);
 
     $this->transport
-        ->shouldReceive('baseUri', 'put', 'post', 'delete', 'get', 'patch')
+        ->shouldReceive('baseUri')
         ->passthru();
 
     $this->query = new QdrantClient($this->transport, $this->testCollectionName);
@@ -20,13 +20,11 @@ beforeEach(function () {
 describe('Vector', function () {
 
     it('can update vectors', function (PointsCollection $pointsCollection) {
-        $this->transport->shouldReceive('request')
+        $this->transport->shouldReceive('put')
             ->withArgs([
-                'PUT',
-                "/collections/{$this->testCollectionName}/points/vectors",
-                ['json' => [
+                "",
+                [
                     'points' => $pointsCollection->toArray(),
-                    ]
                 ]
             ])
             ->andReturn( new Response([
@@ -46,14 +44,11 @@ describe('Vector', function () {
     it('can delete vectors by id', function () {
         $vectorsToDelete = [1, 3, 10];
 
-        $this->transport->shouldReceive('request')
+        $this->transport->shouldReceive('post')
             ->withArgs([
-                'POST',
-                "/collections/{$this->testCollectionName}/points/vectors/delete",
+                "/delete",
                 [
-                    'json' => [
-                        'points' => $vectorsToDelete,
-                    ]
+                    'points' => $vectorsToDelete,
                 ]
             ])
             ->andReturn( new Response([

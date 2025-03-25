@@ -1,6 +1,5 @@
 <?php
 
-use Mcpuishor\QdrantLaravel\Facades\Client;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
 
 it('can instantiate the default connection', function () {
@@ -20,6 +19,6 @@ it('ensures that the connection is a singleton', function () {
     $transport2 = app()->make(QdrantTransport::class);
 
     expect($transport1)->toBe($transport2)
-    ->and($transport1)->toBeInstanceOf(QdrantTransport::class)
-    ->and($transport2)->toBeInstanceOf(QdrantTransport::class);
+        ->and($transport1)->toBeInstanceOf(QdrantTransport::class)
+        ->and($transport2)->toBeInstanceOf(QdrantTransport::class);
 });
