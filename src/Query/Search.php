@@ -85,7 +85,7 @@ class Search
         return $this;
     }
 
-    public function vector(array $vector): array
+    public function vector(array $vector): self
     {
         if (empty($vector)) {
             throw new SearchException('Search vector cannot be empty.');
@@ -93,10 +93,10 @@ class Search
 
         $this->add( $vector );
 
-        return  $this->performSearch();
+        return  $this;
     }
 
-    public function point(Point $point): array
+    public function point(Point $point): self
     {
         if ($point->isEmpty()) {
             throw new SearchException('Search point cannot be empty.');
@@ -104,7 +104,12 @@ class Search
 
         $this->add( $point->id() );
 
-       return $this->performSearch();
+       return $this;
+    }
+
+    public function get(): array
+    {
+        return $this->performSearch();
     }
 
     public function groupBy(string $payloadKey, int $groupSize = 100, array $withLookup = []): self

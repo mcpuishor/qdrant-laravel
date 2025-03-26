@@ -50,7 +50,7 @@ it('can perform a simple search by vector', function (){
         ->andReturn($this->validResponse);
 
 
-    $result = $this->query->search()->vector($this->vector);
+    $result = $this->query->search()->vector($this->vector)->get();
 
     expect($result)->toBeArray()
         ->toHaveCount(3);
@@ -74,7 +74,7 @@ it('throws an exception if the search cannot be performed', function () {
             'message' => 'Something went wrong.'
         ]));
 
-    $this->query->search()->vector($this->vector);
+    $this->query->search()->vector($this->vector)->get();
 
 })->throws(SearchException::class);
 
@@ -111,7 +111,8 @@ it('can add a filter to the search query', function (string $term, FilterConditi
                     $condition,
                     $value
                 )
-                ->vector($this->vector);
+                ->vector($this->vector)
+                ->get();
 
     expect($result)
         ->toBeArray()
@@ -194,7 +195,8 @@ it('can restrict the number of results returned', function () {
            ]
        ])->andReturn($this->validResponse);
 
-   $result = $this->query->search()->limit($newLimit)->vector($this->vector);
+   $result = $this->query->search()
+       ->limit($newLimit)->vector($this->vector)->get();
 
    expect($result)->toBeArray()
        ->toHaveCount(3);
@@ -272,7 +274,8 @@ it('can return a set of results with an offset', function(){
 
     $result = $this->query->search()
         ->offset($offset)->limit($newLimit)
-        ->vector($this->vector);
+        ->vector($this->vector)
+        ->get();
 
     expect($result)->toBeArray()
         ->toHaveCount(3);
@@ -327,7 +330,8 @@ it('can return a set of results grouped by a key', function(){
     $result = $this->query->search()
         ->groupBy($payloadToGroupBy)
         ->limit(3)
-        ->vector($this->vector);
+        ->vector($this->vector)
+        ->get();
 
     expect($result)->toBeArray()
         ->toHaveKey('groups');
@@ -383,7 +387,8 @@ it('ignores offset if a search is grouped by a key', function(){
         ->groupBy($payloadToGroupBy)
         ->limit(3)
         ->offset(100)
-        ->vector($this->vector);
+        ->vector($this->vector)
+        ->get();
 
     expect($result)->toBeArray()
         ->toHaveKey('groups');
@@ -410,7 +415,8 @@ it('can use a different vector than the default one', function(){
     $result = $this->query->search()
             ->limit($newLimit)
             ->using($testVector)
-            ->vector($this->vector);
+            ->vector($this->vector)
+            ->get();
 
     expect($result)->toBeArray()
         ->toHaveCount(3);
