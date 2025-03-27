@@ -3,6 +3,7 @@
 use Mcpuishor\QdrantLaravel\DTOs\Point;
 use Mcpuishor\QdrantLaravel\DTOs\Response;
 use Mcpuishor\QdrantLaravel\Facades\Client;
+use Mcpuishor\QdrantLaravel\PointsCollection;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
 use Mcpuishor\QdrantLaravel\QdrantClient;
 
@@ -85,7 +86,7 @@ describe('Points creation', function () {
     it('can upsert points', function () {
         $testId = 1;
 
-        $points = collect([
+        $points = PointsCollection::make([
             new Point(
                 id: $testId,
                 vector: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],

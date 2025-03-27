@@ -3,6 +3,7 @@ namespace Mcpuishor\QdrantLaravel\Query;
 
 use Illuminate\Support\Collection;
 use Mcpuishor\QdrantLaravel\DTOs\Point;
+use Mcpuishor\QdrantLaravel\PointsCollection;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
 use Mcpuishor\QdrantLaravel\Traits\HasFilters;
 
@@ -59,7 +60,7 @@ class Points
                 ]
             );
 
-        return collect($response->result() ?? []);
+        return PointsCollection::make($response->result() ?? []);
     }
 
     public function find(int $id): Point
@@ -73,7 +74,7 @@ class Points
         return new Point(...$response->result());
     }
 
-    public function upsert(Collection $points): bool //TODO require a PointsCollection
+    public function upsert(PointsCollection $points): bool
     {
         $response = $this->transport
             ->put(
@@ -103,5 +104,10 @@ class Points
             );
 
         return $response->isOk();
+    }
+
+    public function autochunk(int $chunk_size = 1)
+    {
+        return new Autochunk($this, $chunk_size);
     }
 }
