@@ -38,5 +38,5 @@ return [
             'max_token_len' => 20,
             'lowercase' => true,
         ]
-    ]
+    ],
 ];
