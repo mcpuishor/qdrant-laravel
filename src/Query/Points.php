@@ -74,6 +74,21 @@ class Points
         return new Point(...$response->result());
     }
 
+    public function insert(Point $point): bool
+    {
+        $response = $this->transport
+            ->put(
+                uri: "",
+                options: [
+                    'points' => [
+                        $point->toArray()
+                    ],
+                ]
+            );
+
+        return $response->isOk();
+    }
+
     public function upsert(PointsCollection $points): bool
     {
         $response = $this->transport
