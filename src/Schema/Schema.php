@@ -6,6 +6,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Traits\Macroable;
 use InvalidArgumentException;
 use Mcpuishor\QdrantLaravel\DTOs\Collection\Info;
+use Mcpuishor\QdrantLaravel\DTOs\Vector;
 use Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
 use Mcpuishor\QdrantLaravel\Exceptions\FailedToCreateCollectionException;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
@@ -28,24 +29,32 @@ class Schema
     /**
      * @throws FailedToCreateCollectionException
      */
-    public function create(string $name, array $vectors, array $options = [])
+    public function create(string $name, Vector|array $vectors, array $options = [])
     {
+        if ( $vectors instanceof Vector ) {
+            $this->validateVectorParameters($vectors->toArray());;
+        }
+
         if (isset($vectors['distance'])) {
             //we're in single vector mode
             $this->validateVectorParameters($vectors);
         } else {
             //we're in multiple vectors mode
             foreach ($vectors as $vector) {
-                $this->validateVectorParameters($vector);
+                $this->validateVectorParameters(
+                    vector: ($vector instanceof Vector)
+                        ? $vector->toArray()
+                        : $vector
+                );
             }
         }
 
         try {
-        $response =  $this->transport
+            $response =  $this->transport
                     ->put(
                         uri: "/{$name}",
                          options: [
-                             'vectors' => $vectors,
+                             'vectors' => (array) $vectors,
                              ...$options,
                         ]
                     );

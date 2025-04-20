@@ -1,12 +1,19 @@
 # Qdrant for Laravel
-WARNING! This package is under heavy development and it should not be used just yet. APIs and functionality changes may break applications. 
 
 ## Introduction
-This package provides an elegant, fluent interface for interacting with the [Qdrant Vector Database](https://qdrant.tech/) in Laravel.
-This initial version is handling only single vector collections. 
+This package provides an elegant, fluent interface for interacting with the [Qdrant Vector Database](https://qdrant.tech/) in Laravel. Qdrant is a vector similarity search engine that makes it easy to store and search for embeddings, making it ideal for AI-powered applications.
+
+Key features:
+- Simple collection management
+- Fluent search API with filtering and grouping
+- Efficient point operations (insert, upsert, delete)
+- Laravel Facade support
+- Convenient payload handling
 
 ## Installation
+
 ### 1. Install via Composer
+
 ```sh
 composer require mcpuishor/qdrant-laravel
 ```
@@ -18,8 +25,8 @@ php artisan vendor:publish --tag=qdrant-laravel-config
 This will create a `config/qdrant-laravel.php` file where you can set your Qdrant connections and defaults.
 
 ### 3. Set Up Your `.env` File
-Modify your `.env` file with your Qdrant host details:
-```ini
+Update your `.env` file with your Qdrant host details:
+```env
 QDRANT_MAIN_HOST=http://localhost:6333
 QDRANT_MAIN_API_KEY=
 QDRANT_DEFAULT_COLLECTION=default_collection
@@ -55,13 +62,16 @@ return [
 ```php
 use \Mcpuishor\QdrantLaravel\Facades\Schema;
 use \Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
+use \Mcpuishor\QdrantLaravel\DTOs\Vector;
+
+$vector = Vector::fromArray([
+            'size' => 128,
+            'distance' => DistanceMetric::COSINE
+       ]);
 
 $collection = Schema::create(
                    name: "new_collection",
-                   vector: [
-                        'size' => 128,
-                        'distance' => DistanceMetric::COSINE
-                   ]
+                   vector: $vector
                 );
 ```
 ### Creating a new collection on a different connection 
@@ -73,20 +83,62 @@ must be defined in the ``config\qdrant-laravel.php`` file.
 use \Mcpuishor\QdrantLaravel\Schema;
 use \Mcpuishor\QdrantLaravel\QdrantTransport;
 use \Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
+use \Mcpuishor\QdrantLaravel\DTOs\Vector;
+
+$vector = Vector::fromArray([
+            'size' => 128,
+            'distance' => DistanceMetric::COSINE
+       ]);
 
 $collection = Schema::make( new \Mcpuishor\QdrantLaravel\QdrantTransport('backup') )
                 ->create(
                    name: "new_collection",
-                   vector: [
-                        'size' => 128,
-                        'distance' => DistanceMetric::COSINE
-                   ]
+                   vector: $vector,
                 );
+```
+
+### Creating a collection with multiple vectors
+A collection can contain multiple vectors per point. They need to be passed on to the `Schema::create` 
+as an array containing the definitions of each individual vector.
+
+```php 
+use \Mcpuishor\QdrantLaravel\Schema;
+use \Mcpuishor\QdrantLaravel\QdrantTransport;
+use \Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
+use \Mcpuishor\QdrantLaravel\DTOs\Vector;
+
+$vector1 = Vector::fromArray([
+            'size' => 128,
+            'distance' => DistanceMetric::COSINE
+            ]);
+
+$vector2 = Vector::fromArray([
+            'size' => 1024,
+            'distance' => DistanceMetric::COSINE
+            ]);
+
+$collection = Schema::create(
+               name: "new_collection",
+               vector: array($vector1, $vector2),
+            );
+
 ```
 
 ## Updating a collection
 
 ## Deleting a collection
+To delete a collection, you can call the `delete` method on the `Schema` facade.
+It returns a `Mcpuishor\QdrantLaravel\DTOs\Response` object.
+
+```php
+    use \Mcpuishor\QdrantLaravel\Facades\Schema;
+    
+    $result = Schema::delete('collection_name');
+    
+    if ($result->isOk()) {
+        echo "Collection has been successfully deleted.";
+    }
+```
 
 ## Indexing a collection
 Indexes in a Qdrant vector collection are created on the payload for each vector.
@@ -145,10 +197,10 @@ It returns ``true`` if the operation was successful, or ``false`` otherwise.
 It returns ``true`` if the operation was successful, or ``false`` otherwise.
 
 ## Searching
+The package provides a fluent interface for searching vectors in your Qdrant collection.
 
-
-
-## Artisan commands
+### Basic Vector Search
+To perform a simple search with a vector:
 ### Creating a Collection with indexes
 ```sh
 php artisan qdrant:migrate --collection=plants --vector-size=256 --distance-metric=euclidean --indexes='{"species":"text","age":"integer"}'
