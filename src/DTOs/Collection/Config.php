@@ -1,11 +1,7 @@
 <?php
 namespace Mcpuishor\QdrantLaravel\DTOs\Collection;
 
-use Mcpuishor\QdrantLaravel\DTOs\Collection\HnswConfig;
-use Mcpuishor\QdrantLaravel\DTOs\Collection\OptimizerConfig;
-use Mcpuishor\QdrantLaravel\DTOs\Collection\Params;
-use Mcpuishor\QdrantLaravel\DTOs\Collection\StrictModeConfig;
-use Mcpuishor\QdrantLaravel\DTOs\Collection\WalConfig;
+use Mcpuishor\QdrantLaravel\DTOs\HnswConfig;
 
 readonly class Config
 {
