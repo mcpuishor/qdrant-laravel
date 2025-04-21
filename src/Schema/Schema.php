@@ -92,8 +92,10 @@ class Schema
         return collect($response->result()['collections'] ?? [])->pluck('name');
     }
 
-    public function exists(string $name): bool
+    public function exists(?string $name= null): bool
     {
+        $name = $name ?? $this->transport->getCollection();
+
         $response = $this->transport->get( "/{$name}/exists");
 
         return $response->result()['exists'] ?? throw new InvalidArgumentException("Error in response from Qdrant server.");
