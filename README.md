@@ -27,11 +27,11 @@ This will create a `config/qdrant-laravel.php` file where you can set your Qdran
 ### 3. Set Up Your `.env` File
 Update your `.env` file with your Qdrant host details:
 ```env
-QDRANT_MAIN_HOST=http://localhost:6333
-QDRANT_MAIN_API_KEY=
-QDRANT_DEFAULT_COLLECTION=default_collection
-QDRANT_DEFAULT_VECTOR_SIZE=128
-QDRANT_DEFAULT_DISTANCE_METRIC=cosine
+QDRANT_DEFAULT=main
+QDRANT_HOST=http://localhost:6333
+QDRANT_COLLECTION=collection_name
+QDRANT_VECTOR_SIZE=1536
+QDRANT_DEFAULT_DISTANCE_METRIC=Cosine
 ```
 
 ## Configuration
@@ -39,25 +39,29 @@ The `config/qdrant-laravel.php` file allows multiple connections:
 ```php
 return [
     'default' => env('QDRANT_DEFAULT', 'main'),
+    
     'connections' => [
         'main' => [
-            'host' => env('QDRANT_MAIN_HOST', 'http://localhost:6333'),
-            'api_key' => env('QDRANT_MAIN_API_KEY', null),
+            'host' => env('QDRANT_HOST', 'http://localhost:6333'),
+            'api_key' => env('QDRANT_API_KEY', null),
+            'collection' => env('QDRANT_COLLECTION', 'default_collection'),
+            'vector_size' => env('QDRANT_VECTOR_SIZE', 128),
         ],
     ],
-    'default_collection' => 'default_collection',
-    'default_vector_size' => 128,
-    'default_distance_metric' => 'cosine',
-    'default_indexes' => [
-        'name' => 'keyword',
-        'height' => 'float',
-    ],
+    
+    'default_distance_metric' => env('QDRANT_DEFAULT_DISTANCE_METRIC', 'Cosine'),
 ];
 ```
 
 ## Schema Management (Migrations)
 
-### Creating a new collection using the default connection
+### Creating a new collection
+
+A collection must contain at least one vector. An optional parameter `options` can contain additional
+parameters described as an associative array. See the [Qdrant documentation](https://api.qdrant.tech/api-reference/collections/create-collection) for details. The options can be specified using arrays
+or DataObjects defined in the package.
+
+The response is a boolean value, unless an exception is thrown.
 
 ```php
 use \Mcpuishor\QdrantLaravel\Facades\Schema;
@@ -69,19 +73,22 @@ $vector = Vector::fromArray([
             'distance' => DistanceMetric::COSINE
        ]);
 
-$collection = Schema::create(
+$response = Schema::create(
                    name: "new_collection",
-                   vector: $vector
+                   vector: $vector,
+                   options: []
                 );
+
+if ($response) {
+    echo "Schema created successfully";
+}
 ```
 ### Creating a new collection on a different connection 
-When the server connection is different from teh default one, the 
-connection must be specified when creating the collection. The connection 
-must be defined in the ``config\qdrant-laravel.php`` file.
+You can switch the connection at runtime. The connection must be defined in the 
+`config\qdrant-laravel.php` file.
 
 ```php
 use \Mcpuishor\QdrantLaravel\Schema;
-use \Mcpuishor\QdrantLaravel\QdrantTransport;
 use \Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
 use \Mcpuishor\QdrantLaravel\DTOs\Vector;
 
@@ -90,41 +97,58 @@ $vector = Vector::fromArray([
             'distance' => DistanceMetric::COSINE
        ]);
 
-$collection = Schema::make( new \Mcpuishor\QdrantLaravel\QdrantTransport('backup') )
+$response = Schema::connection('backup')
                 ->create(
                    name: "new_collection",
                    vector: $vector,
                 );
+
+if ($response) {
+    echo "Schema created successfully";
+}
+
 ```
 
 ### Creating a collection with multiple vectors
 A collection can contain multiple vectors per point. They need to be passed on to the `Schema::create` 
-as an array containing the definitions of each individual vector.
+as an array containing the definitions of each vector. The vectors can have different definitions. The 
+optional parameters can be specified using Data Objects defined in the package.
 
 ```php 
 use \Mcpuishor\QdrantLaravel\Schema;
 use \Mcpuishor\QdrantLaravel\QdrantTransport;
 use \Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
 use \Mcpuishor\QdrantLaravel\DTOs\Vector;
+use \Mcpuishor\QdrantLaravel\DTOs\HnswConfig;
 
 $vector1 = Vector::fromArray([
             'size' => 128,
             'distance' => DistanceMetric::COSINE
+            //optional parameters
+            'on_disk' => true,
             ]);
 
 $vector2 = Vector::fromArray([
             'size' => 1024,
-            'distance' => DistanceMetric::COSINE
+            'distance' => DistanceMetric::COSINE,
+            //optional parameters
+            'hsnw_config' => Hnswconfig::fromArray([
+                    'm' => 10,
+                    'ef_construct' => 4,
+                    'on_disk' => true,
+                ]),
             ]);
 
-$collection = Schema::create(
+$response = Schema::create(
                name: "new_collection",
                vector: array($vector1, $vector2),
             );
 
-```
+if ($response) {
+    echo "Schema created successfully";
+}
 
-## Updating a collection
+```
 
 ## Deleting a collection
 To delete a collection, you can call the `delete` method on the `Schema` facade.
@@ -135,10 +159,39 @@ It returns a `Mcpuishor\QdrantLaravel\DTOs\Response` object.
     
     $result = Schema::delete('collection_name');
     
-    if ($result->isOk()) {
+    if ($result) {
         echo "Collection has been successfully deleted.";
     }
 ```
+
+## Collection existence 
+To check if the collection defined in the config on the current connection exists: 
+
+```php
+use \Mcpuishor\QdrantLaravel\Facades\Schema;
+  
+    if ( Schema::exists() ) {
+        echo "Collection exists.";
+    }
+```
+
+At the same time, you can check the existence of a different collection on the same connection: 
+
+```php
+use \Mcpuishor\QdrantLaravel\Facades\Schema;
+  
+    if ( Schema::exists( 'another_collection' ) ) {
+        echo "Collection 'another_collection' exists.";
+    }
+```
+
+
+## Updating a collection
+Updating parameters on an existing collection can be done in a similar fashion to creating one. The parameters updated 
+can be specified using arrays or Data Objects defined in the package. 
+
+
+
 
 ## Indexing a collection
 Indexes in a Qdrant vector collection are created on the payload for each vector.
