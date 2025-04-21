@@ -44,10 +44,10 @@ class Points
         return $this;
     }
 
-    public function get(array $ids): Collection
+    public function get(array $ids): PointsCollection
     {
         if (empty($ids)) {
-            throw new \InvalidArgumentException("ids must be an array");
+            throw new \InvalidArgumentException("IDs must be an array and must contain at least one element.");
         }
 
         $response = $this->transport
