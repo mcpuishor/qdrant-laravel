@@ -16,4 +16,12 @@ readonly class WalConfig
         );
     }
 
+    public function toArray(): array
+    {
+        return [
+            'wal_capacity_mb' => $this->wal_capacity_mb,
+            'wal_segments_ahead' => $this->wal_segments_ahead,
+        ];
+    }
+
 }

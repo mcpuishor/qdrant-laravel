@@ -1,7 +1,7 @@
 <?php
 namespace Mcpuishor\QdrantLaravel\DTOs\Collection;
 
-readonly class OptimizerConfig
+readonly class OptimizerConfig implements ConfigObject
 {
     public function __construct(
         public float $deleted_threshold,
@@ -24,6 +24,17 @@ readonly class OptimizerConfig
             indexing_threshold: $data['indexing_threshold'],
             max_optimization_threads: $data['max_optimization_threads'],
         );
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'deleted_threshold' => $this->deleted_threshold,
+            'vacuum_min_vector_number' => $this->vacuum_min_vector_number,
+            'default_segment_number' => $this->default_segment_number,
+            'max_segment_size' => $this->max_segment_size,
+            'memmap_threshold' => $this->memmap_threshold,
+        ];
     }
 
 }

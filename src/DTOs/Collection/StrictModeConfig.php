@@ -1,7 +1,7 @@
 <?php
 namespace Mcpuishor\QdrantLaravel\DTOs\Collection;
 
-readonly class StrictModeConfig
+readonly class StrictModeConfig implements ConfigObject
 {
     public function __construct(
         public bool $enabled,
@@ -12,6 +12,13 @@ readonly class StrictModeConfig
         return new self(
             enabled: $data['enabled'],
         );
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'enabled' => $this->enabled,
+        ];
     }
 
 }

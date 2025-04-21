@@ -1,6 +1,6 @@
 <?php
 namespace Mcpuishor\QdrantLaravel\DTOs\Collection;
-readonly class Params
+readonly class Params implements ConfigObject
 {
     public function __construct(
         public array $vectors,
@@ -19,6 +19,17 @@ readonly class Params
             write_consistency_factor: $data['write_consistency_factor'],
             on_disk_payload: $data['on_disk_payload'],
         );
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'vectors' => $this->vectors,
+            'shard_number' => $this->shard_number,
+            'replication_factor' => $this->replication_factor,
+            'write_consistency_factor' => $this->write_consistency_factor,
+            'on_disk_payload' => $this->on_disk_payload,
+        ];
     }
 
 }

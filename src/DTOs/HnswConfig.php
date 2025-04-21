@@ -1,7 +1,9 @@
 <?php
 namespace Mcpuishor\QdrantLaravel\DTOs;
 
-readonly class HnswConfig
+use Mcpuishor\QdrantLaravel\DTOs\Collection\ConfigObject;
+
+readonly class HnswConfig implements ConfigObject
 {
     public function __construct(
         public ?int  $m = null,
