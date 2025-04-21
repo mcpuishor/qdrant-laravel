@@ -5,6 +5,7 @@ use GuzzleHttp\Exception\ClientException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Traits\Macroable;
 use InvalidArgumentException;
+use Mcpuishor\QdrantLaravel\DTOs\Collection\ConfigObject;
 use Mcpuishor\QdrantLaravel\DTOs\Collection\Info;
 use Mcpuishor\QdrantLaravel\DTOs\Vector;
 use Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
@@ -21,9 +22,13 @@ class Schema
         $this->transport = $this->transport->baseUri("/collections");
     }
 
-    static public function make(?QdrantTransport $transport = null): self
+    static public function connection(?string $connection = null): self
     {
-        return new static($transport ?? app(QdrantTransport::class));
+        return new static(
+            $connection !== null
+                ? new QdrantTransport($connection)
+                : app(QdrantTransport::class)
+        );
     }
 
     /**
@@ -47,6 +52,16 @@ class Schema
                         : $vector
                 );
             }
+        }
+
+        if(!empty($options)) {
+            collect($options)->flatMap(function($value, $key) {
+                if ($value instanceof ConfigObject) {
+                    return [ $key => $value->toArray() ];
+                }
+
+                return [$key => $value];
+            });
         }
 
         try {
