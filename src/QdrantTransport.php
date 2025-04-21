@@ -11,6 +11,7 @@ class QdrantTransport
 {
     use Macroable;
 
+    protected string $collection;
     protected string $endpoint;
     protected ?string $apiKey;
 
@@ -31,6 +32,8 @@ class QdrantTransport
         }
 
         $settings = $connections[$connection];
+
+        $this->collection = $settings['collection'] ?? null;
         $this->endpoint = $settings['host'];
         $this->apiKey = $settings['api_key'] ?? null;
 
@@ -48,6 +51,11 @@ class QdrantTransport
     public function self(): self
     {
         return $this;
+    }
+
+    public function getCollection(): string
+    {
+        return $this->collection;
     }
 
     public function baseUri(string $baseUri): self
@@ -118,9 +126,12 @@ class QdrantTransport
         return new Response( json_decode($response->json(), true) );
     }
 
-    public function collection(string $name): QdrantClient
+    public function collection(?string $name = null): QdrantClient
     {
-        return new QdrantClient($this, $name);
+        return new QdrantClient(
+            transport: $this,
+            collection: $name ?? $this->collection,
+        );
     }
 
     public function getBaseUri()
