@@ -190,11 +190,46 @@ use \Mcpuishor\QdrantLaravel\Facades\Schema;
 Updating parameters on an existing collection can be done in a similar fashion to creating one. The parameters updated 
 can be specified using arrays or Data Objects defined in the package. 
 
+If the collection has a single unnamed vector, use an empty string as a key for the vector options that must be updated.
 
+```php
+use \Mcpuishor\QdrantLaravel\Facades\Schema;
+use \Mcpuishor\QdrantLaravel\DTOs\Vector;
+use \Mcpuishor\QdrantLaravel\DTOs\HnswConfig;
 
+Schema::update(
+    vectors: [
+        "" => [
+            Vector::fromArray([
+                'on_disk' => true,
+                'hnsw_config'=> HnswConfig::fromArray([
+                    'm' => 32,
+                ])
+            ])
+        ]
+    ],
+    options: [
+        'hnsw_config'=> HnswConfig::fromArray([
+                        'm' => 32,
+                    ])
+    ]
+);
+```
+
+Updating a different collection than the default one defined in the current connection, you must specify the collection name as a parameter.
+
+```php
+use \Mcpuishor\QdrantLaravel\Facades\Schema;
+
+Schema::update(
+    collection: 'collection_name',
+    vectors: [...],
+    options: [...]
+);
+```
 
 ## Indexing a collection
-Indexes in a Qdrant vector collection are created on the payload for each vector.
+Indexes in a Qdrant collection are created on the payload for each point.
 For more details see the [Qdrant documentation](https://qdrant.tech/documentation/concepts/indexing/). 
 
 ### Creating an index

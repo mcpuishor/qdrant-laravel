@@ -101,11 +101,23 @@ class Schema
         return $response->result()['exists'] ?? throw new InvalidArgumentException("Error in response from Qdrant server.");
     }
 
-    public function update(string $name, array $vectors = [], array $options = []): bool
+    public function update(?string $name=null, array $vectors = [], array $options = []): bool
     {
+        if (is_array($vectors)) {
+            $vectors = collect($vectors)->flatMap(function ($vector, $key) {
+                if ($vector instanceof Vector) {
+                    return [$key => $vector->toArray()];
+                }
+                return [$key => $vector];
+            })->toArray();
+        }
+
        $response = $this->transport->patch(
            uri: "/{$name}",
-           options: $vectors + $options
+           options: [
+                'vectors' => $vectors,
+                ...$options,
+           ]
        );
 
        return $response->result();
