@@ -21,7 +21,7 @@ readonly class Vector
         $values = collect([
             'size' => $this->size,
             'distance' => $this->distanceMetric->value,
-            'hnsw' => $this->hnsw_config?->toArray() ?? null,
+            'hnsw_config' => $this->hnsw_config?->toArray() ?? null,
             'quantization' => $this->quantization_config?->toArray() ?? null,
             'on_disk' => $this->on_disk,
             'datatype' => $this->datatype->value,
