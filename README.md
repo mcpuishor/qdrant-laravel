@@ -238,7 +238,8 @@ To create a payload index over a field:
 use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
 use \Mcpuishor\QdrantLaravel\Enums\FieldType;
 
-$result = Qdrant::indexes()->add('field_name', FieldType::KEYWORD);
+$result = Qdrant::indexes()
+            ->add('field_name', FieldType::KEYWORD);
 ```
 It returns ``true`` if the operation was successful, or ``false`` otherwise. 
 
@@ -248,6 +249,15 @@ By default, indexes are stored in memory. If you have large indexes, and they
 need to be stored on the disk, you can use the ``->onDisk()`` method before 
 creating the index. Choose carefully when to store an index on the disk, 
 as this will introduce some latency in your future queries.
+
+```php
+use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+use \Mcpuishor\QdrantLaravel\Enums\FieldType;
+
+$result = Qdrant::indexes()
+            ->onDisk()
+            ->add('field_name', FieldType::KEYWORD);
+```
 
 ### Parameterized integer indexes
 Qdrant v1.8.0 has introduced a parameterized variant of the integer index. 
@@ -260,7 +270,11 @@ For more information on parameterized integer indexes and how they affect perfor
 check the [Qdrant documentation](https://qdrant.tech/documentation/concepts/indexing/#parameterized-index)
 
 ```php
-    $result = Qdrant::indexes()->parameterized()->add('field_name', FieldType::INTEGER);
+use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+
+$result = Qdrant::indexes()
+            ->parameterized()
+            ->add('field_name', FieldType::INTEGER);
 ```
 It returns ``true`` if the operation was successful, or ``false`` otherwise.
 
@@ -269,41 +283,65 @@ Qdrant supports full-text search for string payload. Full-text index allows you 
 the presence of a word or a phrase in the payload field.
 
 ````php
-    use \Mcpuishor\QdrantLaravel\Enums\TokenizerType;
-    use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+use \Mcpuishor\QdrantLaravel\Enums\TokenizerType;
+use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
     
-    $result = Qdrant::indexes()->fulltext('text_field_name', TokenizerType::WORD);
+$result = Qdrant::indexes()
+            ->fulltext('text_field_name', TokenizerType::WORD);
 ````
 It returns ``true`` if the operation was successful, or ``false`` otherwise.
 
 ### Deleting an index
 ````php
-    use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
-    
-    $result = Qdrant::indexes()->delete('payload_field');
+use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+
+$result = Qdrant::indexes()
+            ->delete('payload_field');
 ````
 It returns ``true`` if the operation was successful, or ``false`` otherwise.
 
 ## Searching
 The package provides a fluent interface for searching vectors in your Qdrant collection.
 
-### Basic Vector Search
-To perform a simple search with a vector:
-### Creating a Collection with indexes
-```sh
-php artisan qdrant:migrate --collection=plants --vector-size=256 --distance-metric=euclidean --indexes='{"species":"text","age":"integer"}'
-```
+### Retrieving a single point by ID
+To retrieve a point by ID:
 
-### Rolling Back a Migration (Dropping Collection & Indexes)
-```sh
-php artisan qdrant:migrate --rollback --collection=plants
+```php
+use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+
+$result = Qdrant::points()
+            ->find($pointId);
 ```
+The result will be returned as an object of `\Mcpuishor\QdrantLaravel\DTOs\Point` type.
+
+[TO_REVIEW] If the point is not found, a new empty `Point` object will be returned. 
+
+### Retrieving multiple points by IDs
+```php
+use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+
+$result = Qdrant::points()
+            ->get([ 'id1', 'id2' ]);
+```
+The result will be returned as an object of `\Mcpuishor\QdrantLaravel\PointsCollection` type. 
+This is a child class of `\Illuminate\Support\Collection`. 
+This means that all methods of the Illuminate Collection can be used.
+
+### Nearest neighbours search
+
+### Recommendations
+
+### Discover
+
+### Batch search
+
+### Random points
 
 ## Extending with Macros
 The query builder and client are **Macroable**, allowing custom methods:
 
 ```php
-use Mcpuishor\QdrantLaravel\QdrantClient;
+use Mcpuishor\QdrantLaravel\Client as Qdrant;
 
 QdrantClient::macro('byClimate', function ($climate) {
     return $this->where('climate', '=', $climate);
