@@ -201,14 +201,40 @@ class Search
         )->result();
     }
 
-    public function random(): array
+    public function random(?int $limit): array
     {
+        $payload = [
+            "collection_name" => $this->collection,
+            'sample' => 'random',
+        ];
+
+        if ($limit) {
+            $payload['limit'] = $limit;
+        }
+
+        if ($this->withPayload) {
+            $searchPayload['with_payload'] = true;
+        }
+
+        if ($this->withPayload && $this->include) {
+            $searchPayload['with_payload'] = [
+                'only' => $this->only,
+            ];
+        }
+
+        if ($this->withPayload && $this->exclude) {
+            $searchPayload['with_payload'] = [
+                'exclude' => $this->exclude,
+            ];
+        }
+
+        if($this->withVectors) {
+            $searchPayload['with_vectors'] = true;
+        }
+
         return $this->transport->post(
             uri: "",
-            options: [
-                "collection_name" => $this->collection,
-                'sample' => 'random',
-            ]
+            options: $payload,
         )->result();
     }
 }

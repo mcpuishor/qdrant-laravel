@@ -357,7 +357,8 @@ $result = Qdrant::search()
     ->get();
 ```
 
-If the payload contains multiple fields, you can choose which of these fields should be returned:
+If the payload contains multiple fields, you can choose which of these fields should be returned. Dot notation is accepted
+when specifying the fields.
 
 ```php
 use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
@@ -384,15 +385,23 @@ $result = Qdrant::search()
 
 will return a maximum of 5 results. 
 
-### Recommendations
-
-### Discover
-
 ### Batch search
 
 ### Hybrid searches
 
-### Random points
+### Random sampling
+For testing and debugging purposes, Qdrant provides a way to extract a random sample of points from a collection.
+You can specify that the resultset should include the vectors and/or payloads, in a similar fashion as
+for a regular search.
+
+```php
+use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+
+$result = Qdrant::search()
+    ->withPayload()
+    ->withVectors()
+    ->random(limit: 5);
+```
 
 ## Extending with Macros
 The query builder and client are **Macroable**, allowing custom methods:
