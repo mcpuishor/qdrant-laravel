@@ -180,14 +180,18 @@ describe('Collections', function() {
         $collectionName = "test";
         $optionsUpdate = [
             OptimizersConfig::fromArray([
-                'replication_factor' => 2
+                'flush_interval_sec' => 2
             ])
         ];
 
         $this->transport->shouldReceive('patch')
             ->withArgs([
                 "/$collectionName",
-                $optionsUpdate,
+                [
+                    'optimizers_config' => [
+                        'flush_interval_sec' => 2,
+                    ],
+                ]
             ])
             ->andReturn(
                new Response([

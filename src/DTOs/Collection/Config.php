@@ -17,12 +17,12 @@ readonly class Config implements ConfigObject
     public static function fromArray(array $data): self
     {
         return new self(
-            params: Params::fromArray($data['params']),
-            hnsw_config: HnswConfig::fromArray($data['hnsw_config']),
-            optimizers_config: OptimizersConfig::fromArray($data['optimizers_config']),
-            wal_config: WalConfig::fromArray($data['wal_config']),
-            quantization_config: $data['quantization_config'],
-            strict_mode_config: StrictModeConfig::fromArray($data['strict_mode_config']),
+            params: Params::fromArray($data['params']) ?? null,
+            hnsw_config: HnswConfig::fromArray($data['hnsw_config']) ?? null,
+            optimizers_config: OptimizersConfig::fromArray($data['optimizers_config']) ?? null,
+            wal_config: WalConfig::fromArray($data['wal_config']) ?? null,
+            quantization_config: $data['quantization_config'] ?? null,
+            strict_mode_config: StrictModeConfig::fromArray($data['strict_mode_config']) ?? null,
         );
     }
 

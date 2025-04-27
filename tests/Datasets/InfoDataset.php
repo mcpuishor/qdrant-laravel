@@ -28,7 +28,7 @@ dataset('collectionInfo', [
                     'max_indexing_threads' => 0,
                     'on_disk' => false,
                 ],
-                'optimizer_config' => [
+                'optimizers_config' => [
                     'deleted_threshold' => 0.2,
                     'vacuum_min_vector_number' => 1000,
                     'default_segment_number' => 2,
@@ -78,7 +78,7 @@ dataset('collectionInfo', [
                     'max_indexing_threads' => 4,
                     'on_disk' => true,
                 ],
-                'optimizer_config' => [
+                'optimizers_config' => [
                     'deleted_threshold' => 0.1,
                     'vacuum_min_vector_number' => 500,
                     'default_segment_number' => 3,
@@ -127,7 +127,7 @@ dataset('collectionInfo', [
                 'max_indexing_threads' => 0,
                 'on_disk' => false,
             ],
-            'optimizer_config' => [
+            'optimizers_config' => [
                 'deleted_threshold' => 0.2,
                 'vacuum_min_vector_number' => 1000,
                 'default_segment_number' => 2,
@@ -174,7 +174,7 @@ dataset('collectionInfo', [
                 'max_indexing_threads' => 0,
                 'on_disk' => false,
             ],
-            'optimizer_config' => [
+            'optimizers_config' => [
                 'deleted_threshold' => 0.2,
                 'vacuum_min_vector_number' => 1000,
                 'default_segment_number' => 2,
