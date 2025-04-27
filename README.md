@@ -372,7 +372,7 @@ $result = Qdrant::search()
     ->get();
 ```
 
-Limiting the number of results from a search: 
+Limiting the number of results from a search, will return a maximum number of results:
 
 ```php
 use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
@@ -383,7 +383,17 @@ $result = Qdrant::search()
     ->get();
 ```
 
-will return a maximum of 5 results. 
+### Named vectors
+If the collection has named vectors (multiple vectors for a single point), you can speficy which vector should be used to perform the search.
+
+```php
+use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+
+$result = Qdrant::search()
+    ->using('vector_name')
+    ->vector([0.1, 0.3, 0.4])
+    ->get();
+```
 
 ### Batch search
 
