@@ -196,22 +196,21 @@ If the collection has a single unnamed vector, use an empty string as a key for 
 use \Mcpuishor\QdrantLaravel\Facades\Schema;
 use \Mcpuishor\QdrantLaravel\DTOs\Vector;
 use \Mcpuishor\QdrantLaravel\DTOs\HnswConfig;
+use \\Mcpuishor\QdrantLaravel\DTOs\Collection\OptimizersConfig;
 
 Schema::update(
     vectors: [
         "" => [
-            Vector::fromArray([
-                'on_disk' => true,
-                'hnsw_config'=> HnswConfig::fromArray([
-                    'm' => 32,
-                ])
-            ])
-        ]
+            'on_disk' => true,
+        ],
     ],
     options: [
-        'hnsw_config'=> HnswConfig::fromArray([
-                        'm' => 32,
-                    ])
+        HnswConfig::fromArray([
+            'm' => 32,
+        ]),
+        OptimizersConfig::fromArray([
+            'flush_interval_sec' => 2
+        ]),
     ]
 );
 ```
