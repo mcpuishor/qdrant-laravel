@@ -9,7 +9,7 @@ class Search
 {
     use HasFilters;
     private bool $withPayload = false;
-    private array $only = [];
+    private array $include = [];
     private array $exclude = [];
     private bool $withVectors = false;
     protected string|array $query;
@@ -29,26 +29,16 @@ class Search
         $this->transport = $this->transport->baseUri("/collections/{$this->collection}/points/query");
     }
 
-    public function include( string|array $only = []): self
+    public function withPayload( ?array $include = null, ?array $exclude = null): self
     {
-        if ($only) {
-            $this->only = array_merge($this->only, $only);
+        if (!empty($include)) {
+            $this->include = array_merge($this->include, $include);
         }
 
-        return $this->withPayload();
-    }
-
-    public function exclude(string|array $exclude = []): self
-    {
-        if ($exclude) {
+        if(!empty($exclude)) {
             $this->exclude = array_merge($this->exclude, $exclude);
         }
 
-        return  $this->withPayload();
-    }
-
-    public function withPayload(): self
-    {
         $this->withPayload  = true;
 
         return $this;
@@ -154,7 +144,7 @@ class Search
             $searchPayload['with_payload'] = true;
         }
 
-        if ($this->withPayload && $this->only) {
+        if ($this->withPayload && $this->include) {
             $searchPayload['with_payload'] = [
                 'only' => $this->only,
             ];

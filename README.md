@@ -328,7 +328,61 @@ The result will be returned as an object of `\Mcpuishor\QdrantLaravel\PointsColl
 This is a subtype class of `\Illuminate\Support\Collection`. 
 This means that all methods of the Illuminate Collection can be used.
 
-### Nearest neighbours search
+Search results do not contain by default details of the underlying content (vectors or paload), only the ID and 
+the `score` of each match. Additional information in the result set must be requested explicitly.
+
+### Nearest neighbours (k-NN) search
+Similarity search is the basic search that can be perfomed on a Qdrant collection. 
+In this version of the package, the k-NN search is limited to dense vectors. Usage of sparse vectors will be included
+in future releases of this package. 
+
+```php
+use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+
+$result = Qdrant::search()
+    ->vector([0.1, 0.3, 0.4])
+    ->get();
+```
+
+It returns a `\Mcpuishor\QdrantLaravel\PointsCollection`, containing the nearest points in the vector space. 
+By default only the vectors are returned, without any payload information. If you want to include the payload
+stored with your search results: 
+
+```php
+use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+
+$result = Qdrant::search()
+    ->vector([0.1, 0.3, 0.4])
+    ->withPayload()
+    ->get();
+```
+
+If the payload contains multiple fields, you can choose which of these fields should be returned:
+
+```php
+use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+
+$result = Qdrant::search()
+    ->vector([0.1, 0.3, 0.4])
+    ->withPayload(
+        include: ['payload_field', 'another_payload_field'],
+        exclude: ['excluded_field']
+    )
+    ->get();
+```
+
+Limiting the number of results from a search: 
+
+```php
+use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+
+$result = Qdrant::search()
+    ->vector([0.1, 0.3, 0.4])
+    ->limit(5)
+    ->get();
+```
+
+will return a maximum of 5 results. 
 
 ### Recommendations
 
