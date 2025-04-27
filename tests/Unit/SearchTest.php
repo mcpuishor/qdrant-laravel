@@ -260,7 +260,7 @@ it('can submit a batch of searches at once', function () {
 //        $this->query->search()->limit(5)->add($this->vector),
 //        $this->query->search()->withPayload()->withVectors()->add($this->vector),
 //        $this->query->search()->include(['test1', 'city'])->withVectors()->add($this->vector),
-          $this->query->search()->withOayload(exclude: ['test1', 'city'])->withVectors()->add($this->vector),
+          $this->query->search()->withPayload(exclude: ['test1', 'city'])->withVectors()->add($this->vector),
     ]);
 
     expect($result)->toBeArray()
