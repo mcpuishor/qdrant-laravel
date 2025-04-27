@@ -151,7 +151,7 @@ class Search
 
         if ($this->withPayload && $this->include) {
             $searchPayload['with_payload'] = [
-                'only' => $this->only,
+                'only' => $this->include,
             ];
         }
 
