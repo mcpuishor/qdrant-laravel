@@ -262,8 +262,9 @@ $result = Qdrant::indexes()
 ### Parameterized integer indexes
 Qdrant v1.8.0 has introduced a parameterized variant of the integer index. 
 To turn the parameterized index on you can call the ``->parameterized()`` 
-method before creating an ``integer`` index. This setting is used only for ``integer`` fields
-in the payload. 
+method before creating an ``integer`` index. 
+
+This setting is used only for ``integer`` fields in the payload. 
 
 Values of the ``lookup`` and ``range`` can be toggled in the ``config\qdrant-laravel.php`` file.
 For more information on parameterized integer indexes and how they affect performance
@@ -279,8 +280,8 @@ $result = Qdrant::indexes()
 It returns ``true`` if the operation was successful, or ``false`` otherwise.
 
 ### Full-text indexes
-Qdrant supports full-text search for string payload. Full-text index allows you to filter points by 
-the presence of a word or a phrase in the payload field.
+Qdrant supports full-text search for string payload, similar to SQL based databases. 
+Full-text index allows you to filter points by  the presence of a word or a phrase in the payload field.
 
 ````php
 use \Mcpuishor\QdrantLaravel\Enums\TokenizerType;
@@ -324,7 +325,7 @@ $result = Qdrant::points()
             ->get([ 'id1', 'id2' ]);
 ```
 The result will be returned as an object of `\Mcpuishor\QdrantLaravel\PointsCollection` type. 
-This is a child class of `\Illuminate\Support\Collection`. 
+This is a subtype class of `\Illuminate\Support\Collection`. 
 This means that all methods of the Illuminate Collection can be used.
 
 ### Nearest neighbours search
@@ -334,6 +335,8 @@ This means that all methods of the Illuminate Collection can be used.
 ### Discover
 
 ### Batch search
+
+### Hybrid searches
 
 ### Random points
 
