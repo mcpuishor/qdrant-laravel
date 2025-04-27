@@ -142,7 +142,9 @@ it('can switch on the vectors return', function () {
 
 it('can select the fields in payload to return', function (){
     $field = "test_field";
-    $query = $this->query->search()->include([$field])->add($this->vector);
+    $query = $this->query->search()
+            ->withPayload(include: [$field])
+            ->add($this->vector);
 
     expect($query->getSearchPayload())
         ->toBeArray()
@@ -154,7 +156,9 @@ it('can select the fields in payload to return', function (){
 
 it('can exclude fields from the payload from the return', function(){
     $field = "test_field";
-    $query = $this->query->search()->exclude([$field])->add($this->vector);
+    $query = $this->query->search()
+                ->withPayload(exclude: [$field])
+                ->add($this->vector);
 
     expect($query->getSearchPayload())
         ->toBeArray()
@@ -175,7 +179,9 @@ it('throws an exception if the vector is not provided', function ($vector) {
 it('throws an exception if the point is empty', function ($vector) {
     $this->transport->shouldnotHaveBeenCalled();
 
-    $this->query->search()->point(new Point( id: 1, vector: $vector ));
+    $this->query->search()
+            ->point(new Point( id: 1, vector: $vector ));
+
 })->with([
     "empty" => [ [] ] //the argument is an empty vector
 ])->throws(SearchException::class, 'Search point cannot be empty.');
@@ -196,7 +202,9 @@ it('can restrict the number of results returned', function () {
        ])->andReturn($this->validResponse);
 
    $result = $this->query->search()
-       ->limit($newLimit)->vector($this->vector)->get();
+        ->vector($this->vector)
+        ->limit($newLimit)
+        ->get();
 
    expect($result)->toBeArray()
        ->toHaveCount(3);
@@ -205,13 +213,17 @@ it('can restrict the number of results returned', function () {
 it('throws an exception if the limit is not a positive integer', function () {
     $this->transport->shouldNotHaveBeenCalled();
 
-    $this->query->search()->limit(-1);
+    $this->query->search()
+        ->limit(-1);
+
 })->throws(SearchException::class, 'Limit must be greater than 0.');
 
 it('throws an exception if the batch is empty', function () {
     $this->transport->shouldnotHaveBeenCalled();
 
-    $this->query->search()->batch([]);
+    $this->query->search()
+        ->batch([]);
+
 })->throws(SearchException::class, 'Search array cannot be empty.');
 
 it('can submit a batch of searches at once', function () {
@@ -248,7 +260,7 @@ it('can submit a batch of searches at once', function () {
 //        $this->query->search()->limit(5)->add($this->vector),
 //        $this->query->search()->withPayload()->withVectors()->add($this->vector),
 //        $this->query->search()->include(['test1', 'city'])->withVectors()->add($this->vector),
-          $this->query->search()->exclude(['test1', 'city'])->withVectors()->add($this->vector),
+          $this->query->search()->withOayload(exclude: ['test1', 'city'])->withVectors()->add($this->vector),
     ]);
 
     expect($result)->toBeArray()
