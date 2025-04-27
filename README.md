@@ -451,5 +451,5 @@ This package simplifies working with Qdrant in Laravel, making it easy to integr
 
 ---
 ### **License**
-This package is open-source and available under the [MIT License](LICENSE).
+This package is open-source and available under the [MIT License](https://opensource.org/license/mit).
 
