@@ -111,11 +111,11 @@ class Search
         return $this;
     }
 
-    public function get(): array
+    public function raw(array $query): array
     {
         $result = $this->transport->post(
             uri: $this->groupBy ? '/groups' : '',
-            options: $this->getSearchPayload()
+            options: $query
         );
 
         if (!$result->isOK()) {
@@ -123,6 +123,11 @@ class Search
         }
 
         return $result->result();
+    }
+
+    public function get(): array
+    {
+        return $this->raw($this->getSearchPayload());
     }
 
     public function getSearchPayload(): array

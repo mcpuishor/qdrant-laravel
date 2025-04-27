@@ -403,6 +403,27 @@ $result = Qdrant::search()
     ->random(limit: 5);
 ```
 
+## Raw queries
+Sometimes, the fuent interface might not be ideal to describe the real intent of the search or
+features are missing from the package. In this situation, you can specify a "raw" query that will 
+be passed on the Query API of Qdrant.
+
+```php
+use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+
+$result = Qdrant::search()
+    ->raw([
+        'query' => [
+            'recommend' =>
+                'positive' => [
+                    [ 0.11, 0.35, 0.6]
+                ],
+                'strategy' => 'sum_scores',
+        ],
+        'limit' => 5
+    ]);
+```
+
 ## Extending with Macros
 The query builder and client are **Macroable**, allowing custom methods:
 
