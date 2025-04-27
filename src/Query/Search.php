@@ -107,11 +107,6 @@ class Search
        return $this;
     }
 
-    public function get(): array
-    {
-        return $this->performSearch();
-    }
-
     public function groupBy(string $payloadKey, int $groupSize = 100, array $withLookup = []): self
     {
         $this->groupBy = [
@@ -126,7 +121,7 @@ class Search
         return $this;
     }
 
-    protected function performSearch(): array
+    protected function get(): array
     {
         $result = $this->transport->post(
             uri: $this->groupBy ? '/groups' : '',
