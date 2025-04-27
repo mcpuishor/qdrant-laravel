@@ -111,7 +111,7 @@ class Search
         return $this;
     }
 
-    protected function get(): array
+    public function get(): array
     {
         $result = $this->transport->post(
             uri: $this->groupBy ? '/groups' : '',
