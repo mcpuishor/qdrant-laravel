@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Collection;
 use Mcpuishor\QdrantLaravel\DTOs\Response;
+use Mcpuishor\QdrantLaravel\DTOs\Collection\OptimizersConfig;
+use Mcpuishor\QdrantLaravel\DTOs\Vector;
 use Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
 use Mcpuishor\QdrantLaravel\Exceptions\FailedToCreateCollectionException;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
@@ -111,7 +113,6 @@ describe('Listing', function(){
 
 describe('Collections', function() {
     it('can create a new collection in single mode', closure: function () {
-
         $testCollectionName = 'testcollection';
         $this->transport->shouldReceive('put')
             ->withArgs([
@@ -175,12 +176,22 @@ describe('Collections', function() {
         expect($response)->toBeTrue();
     });
 
-    it('can update a collection', function() {
-        $collectionName = 'test';
+    it('can update the parameters of a collection', function(){
+        $collectionName = "test";
+        $optionsUpdate = [
+            OptimizersConfig::fromArray([
+                'flush_interval_sec' => 2
+            ])
+        ];
+
         $this->transport->shouldReceive('patch')
             ->withArgs([
                 "/$collectionName",
-                ['size' => 1000, 'distance' => DistanceMetric::COSINE->value],
+                [
+                    'optimizers_config' => [
+                        'flush_interval_sec' => 2,
+                    ],
+                ]
             ])
             ->andReturn(
                new Response([
@@ -191,7 +202,43 @@ describe('Collections', function() {
             );
 
         $result = $this->qdrantSchema
-                ->update($collectionName, ['size' => 1000, 'distance' => DistanceMetric::COSINE->value ]);
+                ->update(
+                   collectionName: $collectionName, 
+                    options: $optionsUpdate
+                );
+
+        expect($result)->toBeTrue();
+    });
+
+    it('can update the vectors of a collection', function() {
+        $collectionName = 'test';
+
+        $vectorsUpdate = [
+                "vector1" => [
+                    'on_disk' => true,
+                ],
+        ];
+
+        $this->transport->shouldReceive('patch')
+            ->withArgs([
+                "/$collectionName",
+                [
+                    'vectors' => $vectorsUpdate,
+                ],
+            ])
+            ->andReturn(
+               new Response([
+                   'time' => 1,
+                   'status' => 'ok',
+                   'result' => true,
+               ])
+            );
+
+        $result = $this->qdrantSchema
+                ->update(
+                   collectionName: $collectionName, 
+                    vectors: $vectorsUpdate
+                );
 
         expect($result)->toBeTrue();
     });

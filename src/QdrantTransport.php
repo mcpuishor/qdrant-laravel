@@ -116,10 +116,10 @@ class QdrantTransport
         return new Response( json_decode($response->json(), true) );
     }
 
-    public function patch($uri, array $options = []): Response
+    public function patch(string $uri, array $options = []): Response
     {
         $response = $this->httpClient->patch(
-            url:$this->baseUri . $uri,
+            url: $this->baseUri . $uri,
             data: $options
         );
 

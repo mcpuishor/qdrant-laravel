@@ -9,7 +9,7 @@ class Search
 {
     use HasFilters;
     private bool $withPayload = false;
-    private array $only = [];
+    private array $include = [];
     private array $exclude = [];
     private bool $withVectors = false;
     protected string|array $query;
@@ -29,26 +29,16 @@ class Search
         $this->transport = $this->transport->baseUri("/collections/{$this->collection}/points/query");
     }
 
-    public function include( string|array $only = []): self
+    public function withPayload( ?array $include = null, ?array $exclude = null): self
     {
-        if ($only) {
-            $this->only = array_merge($this->only, $only);
+        if (!empty($include)) {
+            $this->include = array_merge($this->include, $include);
         }
 
-        return $this->withPayload();
-    }
-
-    public function exclude(string|array $exclude = []): self
-    {
-        if ($exclude) {
+        if(!empty($exclude)) {
             $this->exclude = array_merge($this->exclude, $exclude);
         }
 
-        return  $this->withPayload();
-    }
-
-    public function withPayload(): self
-    {
         $this->withPayload  = true;
 
         return $this;
@@ -107,11 +97,6 @@ class Search
        return $this;
     }
 
-    public function get(): array
-    {
-        return $this->performSearch();
-    }
-
     public function groupBy(string $payloadKey, int $groupSize = 100, array $withLookup = []): self
     {
         $this->groupBy = [
@@ -126,11 +111,11 @@ class Search
         return $this;
     }
 
-    protected function performSearch(): array
+    public function raw(array $query): array
     {
         $result = $this->transport->post(
             uri: $this->groupBy ? '/groups' : '',
-            options: $this->getSearchPayload()
+            options: $query
         );
 
         if (!$result->isOK()) {
@@ -138,6 +123,11 @@ class Search
         }
 
         return $result->result();
+    }
+
+    public function get(): array
+    {
+        return $this->raw($this->getSearchPayload());
     }
 
     public function getSearchPayload(): array
@@ -159,9 +149,9 @@ class Search
             $searchPayload['with_payload'] = true;
         }
 
-        if ($this->withPayload && $this->only) {
+        if ($this->withPayload && $this->include) {
             $searchPayload['with_payload'] = [
-                'only' => $this->only,
+                'only' => $this->include,
             ];
         }
 
@@ -216,14 +206,40 @@ class Search
         )->result();
     }
 
-    public function random(): array
+    public function random(?int $limit): array
     {
+        $payload = [
+            "collection_name" => $this->collection,
+            'sample' => 'random',
+        ];
+
+        if ($limit) {
+            $payload['limit'] = $limit;
+        }
+
+        if ($this->withPayload) {
+            $searchPayload['with_payload'] = true;
+        }
+
+        if ($this->withPayload && $this->include) {
+            $searchPayload['with_payload'] = [
+                'only' => $this->only,
+            ];
+        }
+
+        if ($this->withPayload && $this->exclude) {
+            $searchPayload['with_payload'] = [
+                'exclude' => $this->exclude,
+            ];
+        }
+
+        if($this->withVectors) {
+            $searchPayload['with_vectors'] = true;
+        }
+
         return $this->transport->post(
             uri: "",
-            options: [
-                "collection_name" => $this->collection,
-                'sample' => 'random',
-            ]
+            options: $payload,
         )->result();
     }
 }

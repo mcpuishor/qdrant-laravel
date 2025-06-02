@@ -101,21 +101,47 @@ class Schema
         return $response->result()['exists'] ?? throw new InvalidArgumentException("Error in response from Qdrant server.");
     }
 
-    public function update(?string $name = null, array $vectors = [], array $options = []): bool
+    public function update(?string $collectionName=null, array $vectors = [], array $options = []): bool
     {
-        $name = $name ?? $this->transport->getCollection();
+        if (empty($vectors) && empty($options)) {
+            throw new InvalidArgumentException("Vectors or Options must be provided when trying to update a collection.");
+        }
+        $collectionName = $collectionName ?? $this->transport->getCollection();
+        $vectors = collect($vectors)->flatMap(function ($vector, $key) {
+            if ($vector instanceof Vector) {
+                return [$key => $vector->toArray()];
+            }
+            return [$key => $vector];
+        })->toArray();
 
-        $response = $this->transport->patch(
-           uri: "/{$name}",
-           options: $vectors + $options
+        $options = collect($options)
+            ->flatMap(function($configObject){
+                if (!$configObject instanceof ConfigObject) {
+                    return;
+                }
+                $class = explode('\\', get_class($configObject));
+                $name = str()->snake(end($class));
+
+                return [
+                    $name => $configObject->toArray(),
+                ];
+            })->toArray();
+
+        if (!empty($vectors)) {
+            $options['vectors'] = $vectors;
+        }
+
+       $response = $this->transport->patch(
+           uri: "/{$collectionName}",
+           options: $options
        );
 
        return $response->result();
     }
 
-    public function delete(string $name): bool
+    public function delete(string $collectionName): bool
     {
-        $response =  $this->transport->delete( uri: "/{$name}" );
+        $response =  $this->transport->delete( uri: "/{$collectionName}" );
 
         return $response->result();
     }
