@@ -114,7 +114,7 @@ A collection can contain multiple vectors per point. They need to be passed on t
 as an array containing the definitions of each vector. The vectors can have different definitions. The 
 optional parameters can be specified using Data Objects defined in the package.
 
-```php 
+```php
 use \Mcpuishor\QdrantLaravel\Schema;
 use \Mcpuishor\QdrantLaravel\QdrantTransport;
 use \Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
@@ -147,7 +147,6 @@ $response = Schema::create(
 if ($response) {
     echo "Schema created successfully";
 }
-
 ```
 
 ## Deleting a collection
@@ -155,13 +154,13 @@ To delete a collection, you can call the `delete` method on the `Schema` facade.
 It returns a `Mcpuishor\QdrantLaravel\DTOs\Response` object.
 
 ```php
-    use \Mcpuishor\QdrantLaravel\Facades\Schema;
-    
-    $result = Schema::delete('collection_name');
-    
-    if ($result) {
-        echo "Collection has been successfully deleted.";
-    }
+use \Mcpuishor\QdrantLaravel\Facades\Schema;
+
+$result = Schema::delete('collection_name');
+
+if ($result) {
+    echo "Collection has been successfully deleted.";
+}
 ```
 
 ## Collection existence 
@@ -170,9 +169,9 @@ To check if the collection defined in the config on the current connection exist
 ```php
 use \Mcpuishor\QdrantLaravel\Facades\Schema;
   
-    if ( Schema::exists() ) {
-        echo "Collection exists.";
-    }
+if ( Schema::exists() ) {
+    echo "Collection exists.";
+}
 ```
 
 At the same time, you can check the existence of a different collection on the same connection: 
@@ -180,17 +179,37 @@ At the same time, you can check the existence of a different collection on the s
 ```php
 use \Mcpuishor\QdrantLaravel\Facades\Schema;
   
-    if ( Schema::exists( 'another_collection' ) ) {
-        echo "Collection 'another_collection' exists.";
-    }
+if ( Schema::exists( 'another_collection' ) ) {
+    echo "Collection 'another_collection' exists.";
+}
 ```
-
 
 ## Updating a collection
 Updating parameters on an existing collection can be done in a similar fashion to creating one. The parameters updated 
 can be specified using arrays or Data Objects defined in the package. 
 
+Updating the collection defined in the `config\qdrant-laravel.php`:
+```php
+use \Mcpuishor\QdrantLaravel\Facades\Schema;
+use \Mcpuishor\QdrantLaravel\DTOs\HnswConfig;
+use \Mcpuishor\QdrantLaravel\DTOs\Collection\Params;
 
+Schema::update(
+    vectors: [
+           
+    ], 
+    options: [
+       'hnsw_config' => HnswConfig::fromArray([
+                'm' => 100,
+                'ef_construct' => 5,
+            ]),
+       'params' => Params::fromArray([
+                'replication_factor' => 4,
+                'on_disk_payload' => true,
+            ]),
+    ]
+);
+```
 
 
 ## Indexing a collection

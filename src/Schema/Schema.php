@@ -101,9 +101,11 @@ class Schema
         return $response->result()['exists'] ?? throw new InvalidArgumentException("Error in response from Qdrant server.");
     }
 
-    public function update(string $name, array $vectors = [], array $options = []): bool
+    public function update(?string $name = null, array $vectors = [], array $options = []): bool
     {
-       $response = $this->transport->patch(
+        $name = $name ?? $this->transport->getCollection();
+
+        $response = $this->transport->patch(
            uri: "/{$name}",
            options: $vectors + $options
        );
