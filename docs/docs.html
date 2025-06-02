@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qdrant for Laravel Documentation</title>
+    <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+    <div class="documentation-container">
+        <button class="menu-toggle" id="menu-toggle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Qdrant for Laravel</h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#introduction" class="nav-link active">Introduction</a></li>
+                <li><a href="#installation" class="nav-link">Installation</a></li>
+                <li><a href="#configuration" class="nav-link">Configuration</a></li>
+                <li><a href="#schema-management" class="nav-link">Schema Management</a></li>
+                <li><a href="#deleting-collection" class="nav-link">Deleting a Collection</a></li>
+                <li><a href="#collection-existence" class="nav-link">Collection Existence</a></li>
+                <li><a href="#updating-collection" class="nav-link">Updating a Collection</a></li>
+                <li><a href="#indexing-collection" class="nav-link">Indexing a Collection</a></li>
+                <li><a href="#searching" class="nav-link">Searching</a></li>
+                <li><a href="#extending-macros" class="nav-link">Extending with Macros</a></li>
+                <li><a href="#conclusion" class="nav-link">Conclusion</a></li>
+                <li><a href="#license" class="nav-link">License</a></li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <section id="introduction" class="section">
+                <h1>Qdrant for Laravel</h1>
+                <h2>Introduction</h2>
+                <p>This package provides an elegant, fluent interface for interacting with the <a href="https://qdrant.tech/" target="_blank">Qdrant Vector Database</a> in Laravel. Qdrant is a vector similarity search engine that makes it easy to store and search for embeddings, making it ideal for AI-powered applications.</p>
+
+                <p>Key features:</p>
+                <ul>
+                    <li>Simple collection management</li>
+                    <li>Fluent search API with filtering and grouping</li>
+                    <li>Efficient point operations (insert, upsert, delete)</li>
+                    <li>Laravel Facade support</li>
+                    <li>Convenient payload handling</li>
+                </ul>
+            </section>
+
+            <section id="installation" class="section">
+                <h2>Installation</h2>
+
+                <h3>1. Install via Composer</h3>
+                <pre><code>composer require mcpuishor/qdrant-laravel</code></pre>
+
+                <h3>2. Publish the Configuration File</h3>
+                <pre><code>php artisan vendor:publish --tag=qdrant-laravel-config</code></pre>
+                <p>This will create a <code>config/qdrant-laravel.php</code> file where you can set your Qdrant connections and defaults.</p>
+
+                <h3>3. Set Up Your <code>.env</code> File</h3>
+                <p>Update your <code>.env</code> file with your Qdrant host details:</p>
+                <pre><code>QDRANT_DEFAULT=main
+QDRANT_HOST=http://localhost:6333
+QDRANT_COLLECTION=collection_name
+QDRANT_VECTOR_SIZE=1536
+QDRANT_DEFAULT_DISTANCE_METRIC=Cosine</code></pre>
+            </section>
+
+            <section id="configuration" class="section">
+                <h2>Configuration</h2>
+                <p>The <code>config/qdrant-laravel.php</code> file allows multiple connections:</p>
+                <pre><code>return [
+    'default' => env('QDRANT_DEFAULT', 'main'),
+
+    'connections' => [
+        'main' => [
+            'host' => env('QDRANT_HOST', 'http://localhost:6333'),
+            'api_key' => env('QDRANT_API_KEY', null),
+            'collection' => env('QDRANT_COLLECTION', 'default_collection'),
+            'vector_size' => env('QDRANT_VECTOR_SIZE', 128),
+        ],
+    ],
+
+    'default_distance_metric' => env('QDRANT_DEFAULT_DISTANCE_METRIC', 'Cosine'),
+];</code></pre>
+            </section>
+
+            <section id="schema-management" class="section">
+                <h2>Schema Management (Migrations)</h2>
+
+                <h3>Creating a new collection</h3>
+                <p>A collection must contain at least one vector. An optional parameter <code>options</code> can contain additional parameters described as an associative array. See the <a href="https://api.qdrant.tech/api-reference/collections/create-collection" target="_blank">Qdrant documentation</a> for details. The options can be specified using arrays or DataObjects defined in the package.</p>
+
+                <p>The response is a boolean value, unless an exception is thrown.</p>
+
+                <pre><code>use \Mcpuishor\QdrantLaravel\Facades\Schema;
+use \Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
+use \Mcpuishor\QdrantLaravel\DTOs\Vector;
+
+$vector = Vector::fromArray([
+            'size' => 128,
+            'distance' => DistanceMetric::COSINE
+       ]);
+
+$response = Schema::create(
+                   name: "new_collection",
+                   vector: $vector,
+                   options: []
+                );
+
+if ($response) {
+    echo "Schema created successfully";
+}</code></pre>
+
+                <h3>Creating a new collection on a different connection</h3>
+                <p>You can switch the connection at runtime. The connection must be defined in the <code>config\qdrant-laravel.php</code> file.</p>
+
+                <pre><code>use \Mcpuishor\QdrantLaravel\Schema;
+use \Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
+use \Mcpuishor\QdrantLaravel\DTOs\Vector;
+
+$vector = Vector::fromArray([
+            'size' => 128,
+            'distance' => DistanceMetric::COSINE
+       ]);
+
+$response = Schema::connection('backup')
+                ->create(
+                   name: "new_collection",
+                   vector: $vector,
+                );
+
+if ($response) {
+    echo "Schema created successfully";
+}</code></pre>
+
+                <h3>Creating a collection with multiple vectors</h3>
+                <p>A collection can contain multiple vectors per point. They need to be passed on to the <code>Schema::create</code> as an array containing the definitions of each vector. The vectors can have different definitions. The optional parameters can be specified using Data Objects defined in the package.</p>
+
+                <pre><code>use \Mcpuishor\QdrantLaravel\Schema;
+use \Mcpuishor\QdrantLaravel\QdrantTransport;
+use \Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
+use \Mcpuishor\QdrantLaravel\DTOs\Vector;
+use \Mcpuishor\QdrantLaravel\DTOs\HnswConfig;
+
+$vector1 = Vector::fromArray([
+            'size' => 128,
+            'distance' => DistanceMetric::COSINE
+            //optional parameters
+            'on_disk' => true,
+            ]);
+
+$vector2 = Vector::fromArray([
+            'size' => 1024,
+            'distance' => DistanceMetric::COSINE,
+            //optional parameters
+            'hsnw_config' => Hnswconfig::fromArray([
+                    'm' => 10,
+                    'ef_construct' => 4,
+                    'on_disk' => true,
+                ]),
+            ]);
+
+$response = Schema::create(
+               name: "new_collection",
+               vector: array($vector1, $vector2),
+            );
+
+if ($response) {
+    echo "Schema created successfully";
+}</code></pre>
+            </section>
+
+            <section id="deleting-collection" class="section">
+                <h2>Deleting a collection</h2>
+                <p>To delete a collection, you can call the <code>delete</code> method on the <code>Schema</code> facade. It returns a <code>Mcpuishor\QdrantLaravel\DTOs\Response</code> object.</p>
+
+                <pre><code>use \Mcpuishor\QdrantLaravel\Facades\Schema;
+
+$result = Schema::delete('collection_name');
+
+if ($result) {
+    echo "Collection has been successfully deleted.";
+}</code></pre>
+            </section>
+
+            <section id="collection-existence" class="section">
+                <h2>Collection existence</h2>
+                <p>To check if the collection defined in the config on the current connection exists:</p>
+
+                <pre><code>use \Mcpuishor\QdrantLaravel\Facades\Schema;
+
+if ( Schema::exists() ) {
+    echo "Collection exists.";
+}</code></pre>
+
+                <p>At the same time, you can check the existence of a different collection on the same connection:</p>
+
+                <pre><code>use \Mcpuishor\QdrantLaravel\Facades\Schema;
+
+if ( Schema::exists( 'another_collection' ) ) {
+    echo "Collection 'another_collection' exists.";
+}</code></pre>
+            </section>
+
+            <section id="updating-collection" class="section">
+                <h2>Updating a collection</h2>
+                <p>Updating parameters on an existing collection can be done in a similar fashion to creating one. The parameters updated can be specified using arrays or Data Objects defined in the package.</p>
+
+                <p>Updating the collection defined in the <code>config\qdrant-laravel.php</code>:</p>
+
+                <pre><code>use \Mcpuishor\QdrantLaravel\Facades\Schema;
+use \Mcpuishor\QdrantLaravel\DTOs\HnswConfig;
+use \Mcpuishor\QdrantLaravel\DTOs\Collection\Params;
+
+Schema::update(
+    vectors: [
+
+    ],
+    options: [
+       'hnsw_config' => HnswConfig::fromArray([
+                'm' => 100,
+                'ef_construct' => 5,
+            ]),
+       'params' => Params::fromArray([
+                'replication_factor' => 4,
+                'on_disk_payload' => true,
+            ]),
+    ]
+);</code></pre>
+            </section>
+
+            <section id="indexing-collection" class="section">
+                <h2>Indexing a collection</h2>
+                <p>Indexes in a Qdrant vector collection are created on the payload for each vector. For more details see the <a href="https://qdrant.tech/documentation/concepts/indexing/" target="_blank">Qdrant documentation</a>.</p>
+
+                <h3>Creating an index</h3>
+                <p>To create a payload index over a field:</p>
+
+                <pre><code>use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+use \Mcpuishor\QdrantLaravel\Enums\FieldType;
+
+$result = Qdrant::indexes()->add('field_name', FieldType::KEYWORD);</code></pre>
+
+                <p>It returns <code>true</code> if the operation was successful, or <code>false</code> otherwise.</p>
+
+                <p>You can use dot notation to create indexes over nested fields.</p>
+
+                <p>By default, indexes are stored in memory. If you have large indexes, and they need to be stored on the disk, you can use the <code>->onDisk()</code> method before creating the index. Choose carefully when to store an index on the disk, as this will introduce some latency in your future queries.</p>
+
+                <h3>Parameterized integer indexes</h3>
+                <p>Qdrant v1.8.0 has introduced a parameterized variant of the integer index. To turn the parameterized index on you can call the <code>->parameterized()</code> method before creating an <code>integer</code> index. This setting is used only for <code>integer</code> fields in the payload.</p>
+
+                <p>Values of the <code>lookup</code> and <code>range</code> can be toggled in the <code>config\qdrant-laravel.php</code> file. For more information on parameterized integer indexes and how they affect performance check the <a href="https://qdrant.tech/documentation/concepts/indexing/#parameterized-index" target="_blank">Qdrant documentation</a></p>
+
+                <pre><code>$result = Qdrant::indexes()->parameterized()->add('field_name', FieldType::INTEGER);</code></pre>
+
+                <p>It returns <code>true</code> if the operation was successful, or <code>false</code> otherwise.</p>
+
+                <h3>Full-text indexes</h3>
+                <p>Qdrant supports full-text search for string payload. Full-text index allows you to filter points by the presence of a word or a phrase in the payload field.</p>
+
+                <pre><code>use \Mcpuishor\QdrantLaravel\Enums\TokenizerType;
+use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+
+$result = Qdrant::indexes()->fulltext('text_field_name', TokenizerType::WORD);</code></pre>
+
+                <p>It returns <code>true</code> if the operation was successful, or <code>false</code> otherwise.</p>
+
+                <h3>Deleting an index</h3>
+
+                <pre><code>use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+
+$result = Qdrant::indexes()->delete('payload_field');</code></pre>
+
+                <p>It returns <code>true</code> if the operation was successful, or <code>false</code> otherwise.</p>
+            </section>
+
+            <section id="searching" class="section">
+                <h2>Searching</h2>
+                <p>The package provides a fluent interface for searching vectors in your Qdrant collection.</p>
+
+                <h3>Basic Vector Search</h3>
+                <p>To perform a simple search with a vector:</p>
+
+                <h3>Creating a Collection with indexes</h3>
+                <pre><code>php artisan qdrant:migrate --collection=plants --vector-size=256 --distance-metric=euclidean --indexes='{"species":"text","age":"integer"}'</code></pre>
+
+                <h3>Rolling Back a Migration (Dropping Collection & Indexes)</h3>
+                <pre><code>php artisan qdrant:migrate --rollback --collection=plants</code></pre>
+            </section>
+
+            <section id="extending-macros" class="section">
+                <h2>Extending with Macros</h2>
+                <p>The query builder and client are <strong>Macroable</strong>, allowing custom methods:</p>
+
+                <pre><code>use Mcpuishor\QdrantLaravel\QdrantClient;
+
+QdrantClient::macro('byClimate', function ($climate) {
+    return $this->where('climate', '=', $climate);
+});
+
+$results = Qdrant::collection('plants')->byClimate('tropical')->get();</code></pre>
+            </section>
+
+            <section id="conclusion" class="section">
+                <h2>Conclusion</h2>
+                <p>This package simplifies working with Qdrant in Laravel, making it easy to integrate <strong>vector search</strong> and <strong>AI-powered applications</strong>. Contributions are welcome!</p>
+            </section>
+
+            <section id="license" class="section">
+                <h2>License</h2>
+                <p>This package is open-source and available under the <a href="LICENSE">MIT License</a>.</p>
+            </section>
+        </main>
+    </div>
+
+    <script src="docs.js"></script>
+</body>
+</html>
