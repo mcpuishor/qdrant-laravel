@@ -34,6 +34,8 @@ body {
 .documentation-container {
     display: flex;
     min-height: 100vh;
+    margin: 0 auto;
+    max-width: 1536px;
 }
 
 /* Sidebar Styles */

@@ -75,40 +75,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Add syntax highlighting to code blocks
-    const codeBlocks = document.querySelectorAll('pre code');
-
-    // Simple syntax highlighting for PHP code
-    function highlightSyntax(code) {
-        // Replace PHP keywords with highlighted spans
-        const keywords = ['use', 'function', 'return', 'if', 'else', 'foreach', 'echo', 'class', 'public', 'private', 'protected', 'static', 'new', 'true', 'false', 'null', 'array'];
-
-        let html = code.innerHTML;
-
-        // Highlight keywords
-        keywords.forEach(keyword => {
-            const regex = new RegExp(`\\b${keyword}\\b`, 'g');
-            html = html.replace(regex, `<span class="keyword">${keyword}</span>`);
-        });
-
-        // Highlight strings
-        html = html.replace(/(["'])(.*?)\1/g, '<span class="string">$&</span>');
-
-        // Highlight comments
-        html = html.replace(/(\/\/.*)/g, '<span class="comment">$1</span>');
-
-        code.innerHTML = html;
-    }
-
-    // Add CSS for syntax highlighting
+    // Add basic styling to code blocks without syntax highlighting
     const style = document.createElement('style');
     style.textContent = `
-        .keyword { color: #007bff; font-weight: bold; }
-        .string { color: #28a745; }
-        .comment { color: #6c757d; font-style: italic; }
+        pre {
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 1em 0;
+            overflow: auto;
+            border: 1px solid #e0e0e0;
+        }
+        pre code {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            white-space: pre;
+            color: #00008B; /* Dark blue text as requested */
+            display: block;
+            line-height: 1.5;
+        }
     `;
     document.head.appendChild(style);
-
-    // Apply syntax highlighting to all code blocks
-    codeBlocks.forEach(highlightSyntax);
 });
