@@ -7,7 +7,7 @@
         "qdrant",
         "vector database"
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true,
     "license": "MIT",
     "authors": [
