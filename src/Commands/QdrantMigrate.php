@@ -1,10 +1,10 @@
 <?php
-namespace YourVendor\Qdrant\Commands;
+namespace Mcpuishor\QdrantLaravel\Commands;
 
 use Illuminate\Console\Command;
 use Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
 use Mcpuishor\QdrantLaravel\Enums\FieldType;
-use Mcpuishor\QdrantLaravel\Schema\Schema;
+use Mcpuishor\QdrantLaravel\Facades\Qdrant;
 
 class QdrantMigrate extends Command
 {
@@ -19,10 +19,10 @@ class QdrantMigrate extends Command
 
     public function handle()
     {
-        $collectionName = $this->option('collection') ?? config('qdrant.default_collection');
-        $vectorSize = $this->option('vector-size') ?? config('qdrant.default_vector_size');
-        $distanceMetric = $this->option('distance-metric') ?? config('qdrant.default_distance_metric');
-        $indexes = $this->option('indexes') ? json_decode($this->option('indexes'), true) : config('qdrant.default_indexes');
+        $collectionName = $this->option('collection') ?? config('qdrant-laravel.default_collection');
+        $vectorSize = $this->option('vector-size') ?? config('qdrant-laravel.default_vector_size');
+        $distanceMetric = $this->option('distance-metric') ?? config('qdrant-laravel.default_distance_metric');
+        $indexes = $this->option('indexes') ? json_decode($this->option('indexes'), true) : config('qdrant-laravel.default_indexes');
 
         if (!DistanceMetric::validate($distanceMetric)) {
             $this->error("Invalid distance metric: {$distanceMetric}. Allowed: " . implode(', ', DistanceMetric::values()));
@@ -36,19 +36,17 @@ class QdrantMigrate extends Command
 
         $this->info("Creating collection: {$collectionName}");
 
-        Schema::create($collectionName, [
-            'vector' => [
+        Qdrant::schema()->create($collectionName, [
                 'size' => (int) $vectorSize,
                 'distance' => $distanceMetric
-            ]
-        ]);
+            ]);
 
         foreach ($indexes as $field => $type) {
             if (!FieldType::validate($type)) {
                 $this->error("Invalid field type for {$field}: {$type}. Allowed: " . implode(', ', FieldType::values()));
                 continue;
             }
-            Schema::addIndex($collectionName, $field, FieldType::from($type));
+            Qdrant::collection($collectionName)->indexes()->add($field, FieldType::from($type));
             $this->info("Index created for field: {$field} ({$type}).");
         }
 
@@ -60,11 +58,11 @@ class QdrantMigrate extends Command
         $this->info("Rolling back migration for collection: {$collectionName}");
 
         foreach ($indexes as $field => $type) {
-            Schema::dropIndex($collectionName, $field);
+            Qdrant::collection($collectionName)->indexes()->delete($field);
             $this->info("Index dropped for field: {$field}.");
         }
 
-        Schema::drop($collectionName);
+        Qdrant::schema()->delete($collectionName);
         $this->info("Collection {$collectionName} deleted.");
     }
 }

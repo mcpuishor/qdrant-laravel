@@ -35,5 +35,11 @@ class QdrantServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../config/qdrant-laravel.php' => config_path('qdrant-laravel.php'),
         ], 'qdrant-laravel-config');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Mcpuishor\QdrantLaravel\Commands\QdrantMigrate::class,
+            ]);
+        }
     }
 }
