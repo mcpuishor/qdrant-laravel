@@ -46,8 +46,13 @@ class QdrantMigrate extends Command
                 $this->error("Invalid field type for {$field}: {$type}. Allowed: " . implode(', ', FieldType::values()));
                 continue;
             }
-            Qdrant::collection($collectionName)->indexes()->add($field, FieldType::from($type));
-            $this->info("Index created for field: {$field} ({$type}).");
+            try {
+                Qdrant::collection($collectionName)->indexes()->add($field, FieldType::from($type));
+                $this->info("Index created for field: {$field} ({$type}).");
+            } catch (\ValueError $e) {
+                $this->error("Failed to create index for field {$field}: {$e->getMessage()}");
+                continue;
+            }
         }
 
         $this->info("Qdrant migration completed for collection: {$collectionName}");
