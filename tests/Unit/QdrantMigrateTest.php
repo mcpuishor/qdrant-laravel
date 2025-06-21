@@ -17,16 +17,17 @@ beforeEach(function () {
         'field2' => FieldType::INTEGER->value
     ];
 
-    // Mock the Qdrant facade
-    $this->qdrantMock = Mockery::mock('alias:' . Qdrant::class);
-
-    // Mock the Schema class
+    // Create mocks
+    $this->qdrantMock = Mockery::mock(QdrantClient::class);
     $this->schemaMock = Mockery::mock(Schema::class);
-    $this->qdrantMock->shouldReceive('schema')->andReturn($this->schemaMock);
-
-    // Mock the QdrantClient for collection
     $this->clientMock = Mockery::mock(QdrantClient::class);
+
+    // Configure mocks
+    $this->qdrantMock->shouldReceive('schema')->andReturn($this->schemaMock);
     $this->qdrantMock->shouldReceive('collection')->with($this->collectionName)->andReturn($this->clientMock);
+
+    // Bind mock to container
+    app()->instance('qdrantclient', $this->qdrantMock);
 
     // Mock the Indexes class
     $this->indexesMock = Mockery::mock(Indexes::class);
