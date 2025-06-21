@@ -7,6 +7,7 @@ Key features:
 - Simple collection management
 - Fluent search API with filtering and grouping
 - Efficient point operations (insert, upsert, delete)
+- Vector operations (update, delete)
 - Laravel Facade support
 - Convenient payload handling
 
@@ -218,8 +219,9 @@ For more details see the [Qdrant documentation](https://qdrant.tech/documentatio
 
 ### Creating an index
 To create a payload index over a field:
+
 ```php
-use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+use \Mcpuishor\QdrantLaravel\Facades\Qdrant;
 use \Mcpuishor\QdrantLaravel\Enums\FieldType;
 
 $result = Qdrant::indexes()->add('field_name', FieldType::KEYWORD);
@@ -254,15 +256,16 @@ the presence of a word or a phrase in the payload field.
 
 ````php
     use \Mcpuishor\QdrantLaravel\Enums\TokenizerType;
-    use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+    use \Mcpuishor\QdrantLaravel\Facades\Qdrant;
 
     $result = Qdrant::indexes()->fulltext('text_field_name', TokenizerType::WORD);
 ````
 It returns ``true`` if the operation was successful, or ``false`` otherwise.
 
 ### Deleting an index
+
 ````php
-    use \Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+    use \Mcpuishor\QdrantLaravel\Facades\Qdrant;
 
     $result = Qdrant::indexes()->delete('payload_field');
 ````
@@ -275,7 +278,7 @@ The package provides a fluent interface for searching vectors in your Qdrant col
 To perform a simple search with a vector:
 
 ```php
-use Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+use Mcpuishor\QdrantLaravel\Facades\Qdrant;
 
 // Search using a vector
 $results = Qdrant::search()
@@ -288,7 +291,7 @@ $results = Qdrant::search()
 You can also search for similar points to an existing point by its ID:
 
 ```php
-use Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+use Mcpuishor\QdrantLaravel\Facades\Qdrant;
 use Mcpuishor\QdrantLaravel\DTOs\Point;
 
 $point = new Point(id: 123);
@@ -425,7 +428,7 @@ The package provides a recommendation system based on positive and negative exam
 Get recommendations based on positive examples:
 
 ```php
-use Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+use Mcpuishor\QdrantLaravel\Facades\Qdrant;
 
 // Recommend based on point IDs
 $recommendations = Qdrant::recommend()
@@ -469,7 +472,7 @@ The package provides methods for managing points in your Qdrant collection.
 Get points by their IDs:
 
 ```php
-use Mcpuishor\QdrantLaravel\Facades\Client as Qdrant;
+use Mcpuishor\QdrantLaravel\Facades\Qdrant;
 
 // Get multiple points
 $points = Qdrant::points()->get([123, 456, 789]);
@@ -561,6 +564,37 @@ foreach ($largeDataset as $data) {
 
 // Manually flush any remaining points
 $chunker->flush();
+```
+
+## Vector Operations
+The package provides methods for managing vectors in your Qdrant collection.
+
+### Updating Vectors
+Update vectors for existing points:
+
+```php
+use Mcpuishor\QdrantLaravel\Facades\Qdrant;
+use Mcpuishor\QdrantLaravel\PointsCollection;
+use Mcpuishor\QdrantLaravel\DTOs\Point;
+
+// Create a collection of points with updated vectors
+$points = new PointsCollection([
+    new Point(id: 123, vector: [0.2, 0.3, 0.4, ...]),
+    new Point(id: 456, vector: [0.5, 0.6, 0.7, ...])
+]);
+
+// Update the vectors
+$success = Qdrant::vectors()->update($points);
+```
+
+### Deleting Vectors
+Delete vectors for specific points:
+
+```php
+use Mcpuishor\QdrantLaravel\Facades\Qdrant;
+
+// Delete vectors for specific points
+$success = Qdrant::vectors()->delete([123, 456]);
 ```
 
 ## Artisan Commands
