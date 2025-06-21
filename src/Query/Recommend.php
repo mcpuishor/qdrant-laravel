@@ -52,6 +52,6 @@ class Recommend extends Search
             $searchPayload['filter'] = $this->getFilters();
         }
 
-        return parent::performSearch();
+        return parent::get();
     }
 }

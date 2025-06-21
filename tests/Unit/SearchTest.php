@@ -4,6 +4,7 @@ use Mcpuishor\QdrantLaravel\DTOs\Point;
 use Mcpuishor\QdrantLaravel\Enums\FilterConditions;
 use Mcpuishor\QdrantLaravel\Enums\FilterVerbs;
 use Mcpuishor\QdrantLaravel\Exceptions\SearchException;
+use Mcpuishor\QdrantLaravel\PointsCollection;
 use Mcpuishor\QdrantLaravel\QdrantClient;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
 use Mcpuishor\QdrantLaravel\Query\Search;
@@ -52,7 +53,7 @@ it('can perform a simple search by vector', function (){
 
     $result = $this->query->search()->vector($this->vector)->get();
 
-    expect($result)->toBeArray()
+    expect($result)->toBeInstanceOf(PointsCollection::class)
         ->toHaveCount(3);
 });
 
@@ -115,7 +116,7 @@ it('can add a filter to the search query', function (string $term, FilterConditi
                 ->get();
 
     expect($result)
-        ->toBeArray()
+        ->toBeInstanceOf(PointsCollection::class)
         ->toHaveCount(3);
 })->with([
     "dataset1" => [ 'field1', FilterConditions::MATCH, 'value1' ],
@@ -206,7 +207,7 @@ it('can restrict the number of results returned', function () {
         ->limit($newLimit)
         ->get();
 
-   expect($result)->toBeArray()
+   expect($result)->toBeInstanceOf(PointsCollection::class)
        ->toHaveCount(3);
 });
 
@@ -289,7 +290,7 @@ it('can return a set of results with an offset', function(){
         ->vector($this->vector)
         ->get();
 
-    expect($result)->toBeArray()
+    expect($result)->toBeInstanceOf(PointsCollection::class)
         ->toHaveCount(3);
 });
 
@@ -345,7 +346,7 @@ it('can return a set of results grouped by a key', function(){
         ->vector($this->vector)
         ->get();
 
-    expect($result)->toBeArray()
+    expect($result)->toBeInstanceOf(PointsCollection::class)
         ->toHaveKey('groups');
 });
 
@@ -402,7 +403,7 @@ it('ignores offset if a search is grouped by a key', function(){
         ->vector($this->vector)
         ->get();
 
-    expect($result)->toBeArray()
+    expect($result)->toBeInstanceOf(PointsCollection::class)
         ->toHaveKey('groups');
 });
 
@@ -430,6 +431,6 @@ it('can use a different vector than the default one', function(){
             ->vector($this->vector)
             ->get();
 
-    expect($result)->toBeArray()
+    expect($result)->toBeInstanceOf(PointsCollection::class)
         ->toHaveCount(3);
 });

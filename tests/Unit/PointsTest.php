@@ -2,7 +2,7 @@
 
 use Mcpuishor\QdrantLaravel\DTOs\Point;
 use Mcpuishor\QdrantLaravel\DTOs\Response;
-use Mcpuishor\QdrantLaravel\Facades\Client;
+use Mcpuishor\QdrantLaravel\Facades\Qdrant;
 use Mcpuishor\QdrantLaravel\PointsCollection;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
 use Mcpuishor\QdrantLaravel\QdrantClient;
@@ -20,7 +20,7 @@ beforeEach(function () {
 });
 
 it('can get an instance of the Client class', function () {
-    $builder = Client::collection('test');
+    $builder = Qdrant::collection('test');
 
     expect($builder)->toBeInstanceOf(class: QdrantClient::class);
 });

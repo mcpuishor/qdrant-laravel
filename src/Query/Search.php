@@ -2,6 +2,7 @@
 namespace Mcpuishor\QdrantLaravel\Query;
 use Mcpuishor\QdrantLaravel\DTOs\Point;
 use Mcpuishor\QdrantLaravel\Exceptions\SearchException;
+use Mcpuishor\QdrantLaravel\PointsCollection;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
 use Mcpuishor\QdrantLaravel\Traits\HasFilters;
 
@@ -111,21 +112,21 @@ class Search
         return $this;
     }
 
-    public function raw(array $query): array
+    public function raw(array $query): PointsCollection
     {
-        $result = $this->transport->post(
+        $response = $this->transport->post(
             uri: $this->groupBy ? '/groups' : '',
             options: $query
         );
 
-        if (!$result->isOK()) {
+        if (!$response->isOK()) {
             throw new SearchException('Search could not be performed. Not a valid response returned from server.');
         }
 
-        return $result->result();
+        return PointsCollection::make($response->result() ?? []);
     }
 
-    public function get(): array
+    public function get(): PointsCollection
     {
         return $this->raw($this->getSearchPayload());
     }

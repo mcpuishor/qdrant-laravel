@@ -2,6 +2,7 @@
 
 use Mcpuishor\QdrantLaravel\Enums\FilterConditions;
 use Mcpuishor\QdrantLaravel\Enums\FilterVerbs;
+use Mcpuishor\QdrantLaravel\PointsCollection;
 use Mcpuishor\QdrantLaravel\QdrantClient;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
 use Mcpuishor\QdrantLaravel\DTOs\Response;
@@ -98,7 +99,7 @@ describe('Search request filters', function(){
         ->and($search->getFilters()[FilterVerbs::MUST->value])
             ->toHaveCount(1)
         ->and($result)
-            ->toBeArray()
+            ->toBeInstanceOf(PointsCollection::class)
             ->toHaveCount(3);
     });
 });

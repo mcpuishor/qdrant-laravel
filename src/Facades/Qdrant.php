@@ -3,7 +3,7 @@ namespace Mcpuishor\QdrantLaravel\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
-class Client extends Facade
+class Qdrant extends Facade
 {
     protected static function getFacadeAccessor()
     {
