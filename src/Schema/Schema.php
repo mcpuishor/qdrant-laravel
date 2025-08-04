@@ -38,9 +38,7 @@ class Schema
     {
         if ( $vectors instanceof Vector ) {
             $this->validateVectorParameters($vectors->toArray());;
-        }
-
-        if (isset($vectors['distance'])) {
+        } else if (isset($vectors['distance'])) {
             //we're in single vector mode
             $this->validateVectorParameters($vectors);
         } else {
