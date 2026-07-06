@@ -5,6 +5,7 @@ use Illuminate\Support\Traits\Macroable;
 use Mcpuishor\QdrantLaravel\Query\BatchUpdate;
 use Mcpuishor\QdrantLaravel\Query\Count;
 use Mcpuishor\QdrantLaravel\Query\Indexes;
+use Mcpuishor\QdrantLaravel\Query\NamedVectors;
 use Mcpuishor\QdrantLaravel\Query\Payloads;
 use Mcpuishor\QdrantLaravel\Query\Points;
 use Mcpuishor\QdrantLaravel\Query\Recommend;
@@ -88,5 +89,10 @@ class QdrantClient
     public function batch(): BatchUpdate
     {
         return new BatchUpdate($this->transport, $this->collection);
+    }
+
+    public function namedVectors(): NamedVectors
+    {
+        return new NamedVectors($this->transport, $this->collection);
     }
 }
