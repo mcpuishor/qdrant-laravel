@@ -3,6 +3,7 @@ namespace Mcpuishor\QdrantLaravel\Snapshots;
 
 use Illuminate\Support\Collection;
 use Mcpuishor\QdrantLaravel\DTOs\SnapshotDescription;
+use Mcpuishor\QdrantLaravel\Exceptions\SnapshotException;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
 
 class CollectionSnapshots
@@ -16,9 +17,13 @@ class CollectionSnapshots
 
     public function create(): SnapshotDescription
     {
-        return SnapshotDescription::fromArray(
-            $this->transport->post(uri: '', options: [])->result()
-        );
+        $response = $this->transport->post(uri: '', options: []);
+
+        if (!$response->isOk()) {
+            throw new SnapshotException($response->error() ?? 'Failed to create snapshot.');
+        }
+
+        return SnapshotDescription::fromArray($response->result());
     }
 
     public function list(): Collection

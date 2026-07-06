@@ -2,6 +2,7 @@
 
 use Mcpuishor\QdrantLaravel\DTOs\Response;
 use Mcpuishor\QdrantLaravel\DTOs\SnapshotDescription;
+use Mcpuishor\QdrantLaravel\Exceptions\SnapshotException;
 use Mcpuishor\QdrantLaravel\QdrantClient;
 use Mcpuishor\QdrantLaravel\QdrantTransport;
 
@@ -22,6 +23,14 @@ it('creates a collection snapshot', function () {
 
     expect($snap)->toBeInstanceOf(SnapshotDescription::class)
         ->and($snap->name)->toBe('test-2025.snapshot');
+});
+
+it('throws a SnapshotException when creation fails', function () {
+    $this->transport->shouldReceive('post')
+        ->withArgs(['', []])
+        ->andReturn(new Response(['status' => ['error' => 'boom'], 'time' => 0.0]));
+
+    expect(fn () => $this->snapshots->create())->toThrow(SnapshotException::class);
 });
 
 it('lists collection snapshots', function () {
