@@ -118,4 +118,9 @@ class QdrantClient
     {
         return new Matrix($this->transport, $this->collection);
     }
+
+    public function service(): \Mcpuishor\QdrantLaravel\Service\Service
+    {
+        return new \Mcpuishor\QdrantLaravel\Service\Service($this->transport);
+    }
 }

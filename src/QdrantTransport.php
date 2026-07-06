@@ -138,4 +138,9 @@ class QdrantTransport
     {
         return $this->baseUri;
     }
+
+    public function raw(string $uri): string
+    {
+        return $this->httpClient->get(url: $this->baseUri . $uri)->body();
+    }
 }
