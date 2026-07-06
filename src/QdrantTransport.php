@@ -143,4 +143,9 @@ class QdrantTransport
     {
         return $this->httpClient->get(url: $this->baseUri . $uri)->body();
     }
+
+    public function download(string $uri): \Illuminate\Http\Client\Response
+    {
+        return $this->httpClient->withOptions(['stream' => true])->get(url: $this->baseUri . $uri);
+    }
 }
