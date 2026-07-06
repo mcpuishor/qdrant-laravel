@@ -148,4 +148,9 @@ class QdrantClient
     {
         return new \Mcpuishor\QdrantLaravel\Cluster\Shards($this->transport, $this->collection);
     }
+
+    public function issues(): \Mcpuishor\QdrantLaravel\Issues\Issues
+    {
+        return new \Mcpuishor\QdrantLaravel\Issues\Issues($this->transport);
+    }
 }
