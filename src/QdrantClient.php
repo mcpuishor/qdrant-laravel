@@ -133,4 +133,9 @@ class QdrantClient
     {
         return new \Mcpuishor\QdrantLaravel\Snapshots\StorageSnapshots($this->transport);
     }
+
+    public function shardSnapshots(int $shardId): \Mcpuishor\QdrantLaravel\Snapshots\ShardSnapshots
+    {
+        return new \Mcpuishor\QdrantLaravel\Snapshots\ShardSnapshots($this->transport, $this->collection, $shardId);
+    }
 }
