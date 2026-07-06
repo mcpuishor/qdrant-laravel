@@ -138,4 +138,9 @@ class QdrantClient
     {
         return new \Mcpuishor\QdrantLaravel\Snapshots\ShardSnapshots($this->transport, $this->collection, $shardId);
     }
+
+    public function cluster(): \Mcpuishor\QdrantLaravel\Cluster\Cluster
+    {
+        return new \Mcpuishor\QdrantLaravel\Cluster\Cluster($this->transport, $this->collection);
+    }
 }
