@@ -78,6 +78,11 @@ class QdrantClient
         return new Search($this->transport, $this->collection, $hnsw_ef, $exact, $limit);
     }
 
+    public function recommend(int $hnsw_ef = 128, bool $exact = false, int $limit = 10): Recommend
+    {
+        return new Recommend($this->transport, $this->collection, $hnsw_ef, $exact, $limit);
+    }
+
     public function count(): Count
     {
         return new Count($this->transport, $this->collection);
