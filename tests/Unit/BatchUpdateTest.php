@@ -31,3 +31,19 @@ it('submits a batch of mixed operations', function () {
 
     expect($ok)->toBeTrue();
 });
+
+it('submits a deleteVectors batch operation', function () {
+    $this->transport->shouldReceive('post')
+        ->withArgs(['/batch', [
+            'operations' => [
+                ['delete_vectors' => ['points' => [1, 2], 'vector' => ['image']]],
+            ],
+        ]])
+        ->andReturn(new Response(['status' => 'ok', 'time' => 0.0, 'result' => []]));
+
+    $ok = $this->client->batch()
+        ->deleteVectors([1, 2], ['image'])
+        ->execute();
+
+    expect($ok)->toBeTrue();
+});

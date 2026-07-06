@@ -755,10 +755,9 @@ Qdrant::collection('plants')->snapshots()->download($snapshot->name); // Illumin
 Qdrant::collection('plants')->snapshots()->recover('file:///qdrant/snapshots/plants/plants.snapshot');
 ```
 
-> **Limitation:** `snapshots()->upload($path)` currently sends `{"location": $path}` to Qdrant — it
-> registers/recovers a snapshot from a path the **Qdrant server** can already see. It does **not** perform
-> a multipart upload of local file bytes from your application to the server. True multipart file upload
-> is not yet supported by this package.
+> **Limitation:** `snapshots()->upload($path)` currently throws a `SnapshotException` — multipart upload
+> of local file bytes from your application to the server is not yet implemented. Use `recover($location)`
+> with a path the **Qdrant server** can already see instead.
 
 ### Storage Snapshots
 Snapshot the entire storage (not tied to a single collection):

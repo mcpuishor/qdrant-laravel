@@ -57,9 +57,8 @@ Full coverage of the Qdrant 1.18.x REST API.
   instead of sending `{"actions": [...]}` directly, which Qdrant rejected.
 
 ### Known limitations
-- `snapshots()->upload($path)` sends `{"location": $path}` — it recovers/registers a snapshot from a
-  location the **Qdrant server** can already see, not a multipart upload of local file bytes from the
-  application to the server. True multipart file upload is not yet implemented.
+- `snapshots()->upload()` throws until multipart is implemented. Use `recover($location)` with a
+  location the **Qdrant server** can already see instead.
 - The legacy `POST /points/search`, `/points/search/batch`, and `/points/search/groups` endpoints are
   not wrapped separately; they are superseded by the Query API (`Query/Search`) already in use by
   `search()` and `recommend()`.

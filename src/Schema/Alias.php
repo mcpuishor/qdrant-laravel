@@ -50,16 +50,11 @@ class Alias
             throw new CommandException("No actions to apply");
         }
 
-        $response =  $this->transport->post(
-            uri: "",
-            options: [
-                "json" => [
-                    "actions" => $this->actions,
-                    ]
-            ]
-        );
+        $response = $this->transport
+            ->baseUri("/collections/aliases")
+            ->post(uri: "", options: ["actions" => $this->actions]);
 
-        return $response->result();
+        return $response->isOk();
     }
 
     public function get(): Collection

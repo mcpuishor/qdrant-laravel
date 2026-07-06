@@ -50,7 +50,9 @@ class CollectionSnapshots
 
     public function upload(string $filePath, array $options = []): bool
     {
-        // Multipart upload; see Task 13 note for attach() variant on the transport.
-        return $this->transport->post(uri: '/upload', options: ['location' => $filePath] + $options)->isOk();
+        throw new SnapshotException(
+            'Multipart snapshot upload is not yet supported by this package. '
+            . 'Use recover() with a location the Qdrant server can access.'
+        );
     }
 }

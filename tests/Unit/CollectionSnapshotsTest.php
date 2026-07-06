@@ -42,3 +42,7 @@ it('lists collection snapshots', function () {
 
     expect($this->snapshots->list())->toHaveCount(1);
 });
+
+it('throws a SnapshotException on upload since multipart upload is not supported', function () {
+    expect(fn () => $this->snapshots->upload('/tmp/x.snapshot'))->toThrow(SnapshotException::class);
+});

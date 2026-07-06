@@ -62,3 +62,26 @@ it('can retrieve aliases for a collection', function () {
     expect($result)->toBeCollection()
         ->and($this->transport->getBaseUri())->toBe("/collections/$testCollection");
 });
+
+it('applies alias actions to the correct endpoint with the correct payload', function () {
+    $this->transport->shouldReceive('post')->once()
+        ->withArgs([
+            "",
+            [
+                "actions" => [
+                    [
+                        "create_alias" => [
+                            "collection_name" => "coll1",
+                            "alias_name" => "alias1",
+                        ],
+                    ],
+                ],
+            ],
+        ])
+        ->andReturn(new Response(['status' => 'ok', 'time' => 0.0, 'result' => true]));
+
+    $result = $this->query->aliases()->add('alias1', 'coll1')->apply();
+
+    expect($result)->toBeTrue()
+        ->and($this->transport->getBaseUri())->toBe("/collections/aliases");
+});
