@@ -72,6 +72,36 @@ describe('Simple search filters', function(){
     });
 });
 
+describe('Filter payload shapes', function () {
+    it('builds a match filter with the correct Qdrant shape', function () {
+        $transport = Mockery::mock(QdrantTransport::class);
+        $transport->shouldReceive('baseUri')->passthru()->andReturnSelf();
+        $points = (new QdrantClient($transport, 'test'))->points();
+
+        $points->must('city', FilterConditions::MATCH, 'London');
+
+        expect($points->getFilters())->toBe([
+            'must' => [
+                ['key' => 'city', 'match' => ['value' => 'London']],
+            ],
+        ]);
+    });
+
+    it('builds a range filter without wrapping the value under value', function () {
+        $transport = Mockery::mock(QdrantTransport::class);
+        $transport->shouldReceive('baseUri')->passthru()->andReturnSelf();
+        $points = (new QdrantClient($transport, 'test'))->points();
+
+        $points->must('price', FilterConditions::RANGE, ['gte' => 100, 'lte' => 400]);
+
+        expect($points->getFilters())->toBe([
+            'must' => [
+                ['key' => 'price', 'range' => ['gte' => 100, 'lte' => 400]],
+            ],
+        ]);
+    });
+});
+
 describe('Search request filters', function(){
     it('can send a request with filters', function(){
         $transport = Mockery::mock(QdrantTransport::class);
