@@ -143,4 +143,9 @@ class QdrantClient
     {
         return new \Mcpuishor\QdrantLaravel\Cluster\Cluster($this->transport, $this->collection);
     }
+
+    public function shards(): \Mcpuishor\QdrantLaravel\Cluster\Shards
+    {
+        return new \Mcpuishor\QdrantLaravel\Cluster\Shards($this->transport, $this->collection);
+    }
 }
