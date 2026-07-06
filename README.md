@@ -611,6 +611,39 @@ use Mcpuishor\QdrantLaravel\Facades\Qdrant;
 $success = Qdrant::vectors()->delete([123, 456]);
 ```
 
+## Collection Aliases
+Aliases let you point a stable name at a collection and swap the underlying collection atomically —
+useful for zero-downtime reindexing (build `plants_v2`, then repoint the `plants` alias to it).
+
+Alias mutations are queued fluently and committed with a single `apply()` call:
+
+```php
+use Mcpuishor\QdrantLaravel\Facades\Qdrant;
+
+// Create an alias, or several, then commit them in one atomic request
+Qdrant::collection('plants')->aliases()
+    ->add('plants', 'plants_v2')   // alias name, target collection
+    ->delete('plants_old')
+    ->apply(); // bool
+
+// Atomically move an alias from its current target to a new collection
+Qdrant::collection('plants')->aliases()
+    ->switch('plants', 'plants_v2') // delete + re-add in one request
+    ->apply();
+```
+
+`apply()` throws a `CommandException` if no actions have been queued.
+
+List aliases — scoped to the current collection, or all aliases across the server:
+
+```php
+// Aliases pointing at the current collection
+$aliases = Qdrant::collection('plants')->aliases()->get(); // Illuminate\Support\Collection
+
+// All aliases on the server (no collection scope)
+$all = Qdrant::aliases()->get();
+```
+
 ## New in 0.2.0
 Version 0.2.0 adds full coverage of the Qdrant 1.18.x REST API — counting, scrolling, batch updates,
 named-vector management, facets, discovery, a distance matrix, service/health/telemetry, snapshots
