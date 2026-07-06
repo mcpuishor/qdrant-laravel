@@ -7,6 +7,7 @@ use Mcpuishor\QdrantLaravel\Query\Count;
 use Mcpuishor\QdrantLaravel\Query\Discover;
 use Mcpuishor\QdrantLaravel\Query\Facet;
 use Mcpuishor\QdrantLaravel\Query\Indexes;
+use Mcpuishor\QdrantLaravel\Query\Matrix;
 use Mcpuishor\QdrantLaravel\Query\NamedVectors;
 use Mcpuishor\QdrantLaravel\Query\Payloads;
 use Mcpuishor\QdrantLaravel\Query\Points;
@@ -111,5 +112,10 @@ class QdrantClient
     public function discover(): Discover
     {
         return new Discover($this->transport, $this->collection);
+    }
+
+    public function matrix(): Matrix
+    {
+        return new Matrix($this->transport, $this->collection);
     }
 }
