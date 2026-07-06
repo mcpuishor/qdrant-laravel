@@ -2,6 +2,7 @@
 namespace Mcpuishor\QdrantLaravel;
 
 use Illuminate\Support\Traits\Macroable;
+use Mcpuishor\QdrantLaravel\Query\BatchUpdate;
 use Mcpuishor\QdrantLaravel\Query\Count;
 use Mcpuishor\QdrantLaravel\Query\Indexes;
 use Mcpuishor\QdrantLaravel\Query\Payloads;
@@ -82,5 +83,10 @@ class QdrantClient
     public function scroll(): Scroll
     {
         return new Scroll($this->transport, $this->collection);
+    }
+
+    public function batch(): BatchUpdate
+    {
+        return new BatchUpdate($this->transport, $this->collection);
     }
 }
