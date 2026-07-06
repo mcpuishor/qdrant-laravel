@@ -4,6 +4,7 @@ namespace Mcpuishor\QdrantLaravel;
 use Illuminate\Support\Traits\Macroable;
 use Mcpuishor\QdrantLaravel\Query\BatchUpdate;
 use Mcpuishor\QdrantLaravel\Query\Count;
+use Mcpuishor\QdrantLaravel\Query\Discover;
 use Mcpuishor\QdrantLaravel\Query\Facet;
 use Mcpuishor\QdrantLaravel\Query\Indexes;
 use Mcpuishor\QdrantLaravel\Query\NamedVectors;
@@ -100,5 +101,10 @@ class QdrantClient
     public function facet(string $key): Facet
     {
         return new Facet($this->transport, $this->collection, $key);
+    }
+
+    public function discover(): Discover
+    {
+        return new Discover($this->transport, $this->collection);
     }
 }
