@@ -128,4 +128,9 @@ class QdrantClient
     {
         return new \Mcpuishor\QdrantLaravel\Snapshots\CollectionSnapshots($this->transport, $this->collection);
     }
+
+    public function storageSnapshots(): \Mcpuishor\QdrantLaravel\Snapshots\StorageSnapshots
+    {
+        return new \Mcpuishor\QdrantLaravel\Snapshots\StorageSnapshots($this->transport);
+    }
 }
