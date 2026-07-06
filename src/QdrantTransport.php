@@ -60,8 +60,9 @@ class QdrantTransport
 
     public function baseUri(string $baseUri): self
     {
-        $this->baseUri = $baseUri;
-        return $this;
+        $clone = clone $this;
+        $clone->baseUri = $baseUri;
+        return $clone;
     }
 
     public function post($uri, array $options = []): Response

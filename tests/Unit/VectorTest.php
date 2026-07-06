@@ -12,7 +12,7 @@ beforeEach(function () {
 
     $this->transport
         ->shouldReceive('baseUri')
-        ->passthru();
+        ->andReturnSelf();
 
     $this->query = new QdrantClient($this->transport, $this->testCollectionName);
 });

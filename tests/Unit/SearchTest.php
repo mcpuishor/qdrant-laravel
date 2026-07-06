@@ -16,7 +16,7 @@ beforeEach(function () {
     $this->transport = Mockery::mock(QdrantTransport::class);
 
     $this->transport->shouldReceive('baseUri')
-        ->passthru();
+        ->andReturnSelf();
 
     $this->query = new QdrantClient($this->transport, $this->testCollectionName);
     $this->vector = [1, 2, 3];

@@ -6,7 +6,7 @@ use Mcpuishor\QdrantLaravel\QdrantTransport;
 
 beforeEach(function () {
     $this->transport = Mockery::mock(QdrantTransport::class);
-    $this->transport->shouldReceive('baseUri')->passthru()->andReturnSelf();
+    $this->transport->shouldReceive('baseUri')->andReturnSelf();
     $this->client = new QdrantClient($this->transport, 'test');
 });
 
