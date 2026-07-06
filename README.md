@@ -349,39 +349,53 @@ $results = Qdrant::search()
 ```
 
 ### Filtering Results
-Apply filters to search results using the fluent filter API:
+Apply filters to search results (and to `count`, `scroll`, `facet`, `discover` and `matrix`, since they
+all share the same `HasFilters` trait) using `must` / `mustNot` / `should` / `minShould`, each taking a
+payload key, a `FilterConditions` case, and the operand for that condition:
 
 ```php
-// Simple equality filter
+use Mcpuishor\QdrantLaravel\Enums\FilterConditions;
+
+// Match filter (equality) — the value is wrapped under `match.value`
 $results = Qdrant::search()
     ->vector($vector)
-    ->where('category', '=', 'electronics')
+    ->must('category', FilterConditions::MATCH, 'electronics')
     ->get();
 
-// Range filter
+// Range filter — the operand is passed through as-is (gte/lte/gt/lt)
 $results = Qdrant::search()
     ->vector($vector)
-    ->where('price', '>=', 100)
-    ->where('price', '<=', 500)
+    ->must('price', FilterConditions::RANGE, ['gte' => 100, 'lte' => 500])
     ->get();
 
-// Multiple conditions
+// Combine MUST and MUST NOT
 $results = Qdrant::search()
     ->vector($vector)
-    ->where('category', '=', 'electronics')
-    ->where('in_stock', '=', true)
+    ->must('category', FilterConditions::MATCH, 'electronics')
+    ->mustNot('discontinued', FilterConditions::MATCH, true)
     ->get();
 
-// Nested conditions
+// SHOULD (at least one of these should match) and MIN SHOULD (at least N of these)
 $results = Qdrant::search()
     ->vector($vector)
-    ->where(function($query) {
-        $query->where('category', '=', 'electronics')
-              ->orWhere('category', '=', 'gadgets');
-    })
-    ->where('price', '<', 1000)
+    ->should('category', FilterConditions::MATCH, 'electronics')
+    ->should('category', FilterConditions::MATCH, 'gadgets')
+    ->minShould('tag', FilterConditions::MATCH, 'featured', min_count: 1)
+    ->get();
+
+// is_empty / is_null only need the key, no value
+$results = Qdrant::search()
+    ->vector($vector)
+    ->must('description', FilterConditions::IS_EMPTY)
     ->get();
 ```
+
+> **Note (issue #3, fixed in 0.2.0):** filter conditions used to serialize incorrectly for several
+> `FilterConditions` cases. As of 0.2.0, `match` correctly wraps its operand under `{"match": {"value": ...}}`,
+> `range`/`geo_bounding_box`/`geo_polygon`/`geo_radius`/`values_count` pass their operand through unwrapped
+> (e.g. `{"range": {"gte": 100}}`), and `is_empty`/`is_null` emit `{"is_empty": {"key": "..."}}` with no value
+> at all. If you built filters against a version prior to 0.2.0, re-check any `range`, `is_empty`, or
+> `is_null` filters — their JSON shape has changed.
 
 ### Grouping Results
 Group search results by a payload field:
@@ -595,6 +609,206 @@ use Mcpuishor\QdrantLaravel\Facades\Qdrant;
 
 // Delete vectors for specific points
 $success = Qdrant::vectors()->delete([123, 456]);
+```
+
+## New in 0.2.0
+Version 0.2.0 adds full coverage of the Qdrant 1.18.x REST API — counting, scrolling, batch updates,
+named-vector management, facets, discovery, a distance matrix, service/health/telemetry, snapshots
+(collection/storage/shard), cluster management, shard keys, and beta issues — plus the issue #3 filter fix
+described above.
+
+### Counting Points
+Count points matching (optional) filters without fetching them:
+
+```php
+use Mcpuishor\QdrantLaravel\Facades\Qdrant;
+use Mcpuishor\QdrantLaravel\Enums\FilterConditions;
+
+$total = Qdrant::collection('plants')
+    ->count()
+    ->exact()
+    ->must('category', FilterConditions::MATCH, 'tropical')
+    ->get(); // int
+```
+
+### Scrolling Through Points
+Page through a collection's points without vector search, optionally ordered by a payload key:
+
+```php
+$scroll = Qdrant::collection('plants')
+    ->scroll()
+    ->limit(50)
+    ->orderBy('created_at', 'desc')
+    ->withPayload()
+    ->withVector();
+
+$page = $scroll->get();               // PointsCollection
+$nextOffset = $scroll->nextPageOffset(); // pass this to ->offset() on the next call
+```
+
+### Batch Updates
+Combine multiple point/payload/vector operations into a single request:
+
+```php
+use Mcpuishor\QdrantLaravel\PointsCollection;
+
+$success = Qdrant::collection('plants')
+    ->batch()
+    ->upsert($pointsCollection) // a PointsCollection
+    ->deletePoints([1, 2, 3])
+    ->setPayload(['watered' => true], points: [4, 5])
+    ->clearPayload(points: [6])
+    ->updateVectors($otherPointsCollection)
+    ->deleteVectors(ids: [7, 8], vectorNames: ['image_embedding'])
+    ->execute(); // bool
+```
+
+### Named Vectors
+Add, remove, or inspect named vector configurations on an existing collection:
+
+```php
+use Mcpuishor\QdrantLaravel\DTOs\Vector;
+use Mcpuishor\QdrantLaravel\Enums\DistanceMetric;
+
+Qdrant::collection('plants')->namedVectors()->create(
+    'image_embedding',
+    Vector::fromArray(['size' => 512, 'distance' => DistanceMetric::COSINE])
+);
+
+Qdrant::collection('plants')->namedVectors()->delete('image_embedding');
+
+$status = Qdrant::collection('plants')->namedVectors()->optimizations(); // array
+```
+
+### Facets
+Get distinct payload values (and their counts) for a key, similar to a search facet/aggregation:
+
+```php
+$facets = Qdrant::collection('plants')
+    ->facet('category')
+    ->limit(20)
+    ->exact()
+    ->get(); // FacetResponse
+
+foreach ($facets->hits() as $hit) {
+    // ['value' => ..., 'count' => ...]
+}
+```
+
+### Discovery
+Find points using positive/negative context pairs plus an optional target — Qdrant's discovery search:
+
+```php
+$results = Qdrant::collection('plants')
+    ->discover()
+    ->target(123)
+    ->context([['positive' => 456, 'negative' => 789]])
+    ->using('image_embedding')
+    ->limit(10)
+    ->get(); // PointsCollection
+
+// Batch discovery
+$batchResults = Qdrant::collection('plants')->discover()->batch([$discover1, $discover2]);
+```
+
+### Recommendations on the Query API
+`Qdrant::recommend()` is rebuilt on top of the Query API (`POST /points/query`) internally, so the
+public interface is unchanged — see the [Recommendations](#recommendations) section above.
+
+### Distance Matrix
+Compute pairwise distances between a sample of points:
+
+```php
+$offsets = Qdrant::collection('plants')
+    ->matrix()
+    ->sample(50)
+    ->limit(10)
+    ->using('image_embedding')
+    ->offsets(); // array
+
+$pairs = Qdrant::collection('plants')->matrix()->sample(50)->pairs(); // array
+```
+
+### Service, Health, and Telemetry
+Inspect the Qdrant server itself, independent of any collection:
+
+```php
+Qdrant::service()->root();          // array — server identity/version
+Qdrant::service()->healthz();       // bool
+Qdrant::service()->livez();         // bool
+Qdrant::service()->readyz();        // bool
+Qdrant::service()->telemetry();     // array
+Qdrant::service()->metrics();       // string — Prometheus text format
+```
+
+### Collection Snapshots
+Create, list, delete, and download snapshots of a collection:
+
+```php
+$snapshot = Qdrant::collection('plants')->snapshots()->create(); // SnapshotDescription
+
+Qdrant::collection('plants')->snapshots()->list();               // Collection<SnapshotDescription>
+Qdrant::collection('plants')->snapshots()->delete($snapshot->name);
+Qdrant::collection('plants')->snapshots()->download($snapshot->name); // Illuminate\Http\Client\Response
+
+// Recover from (register) a snapshot that already exists at a server-visible location
+Qdrant::collection('plants')->snapshots()->recover('file:///qdrant/snapshots/plants/plants.snapshot');
+```
+
+> **Limitation:** `snapshots()->upload($path)` currently sends `{"location": $path}` to Qdrant — it
+> registers/recovers a snapshot from a path the **Qdrant server** can already see. It does **not** perform
+> a multipart upload of local file bytes from your application to the server. True multipart file upload
+> is not yet supported by this package.
+
+### Storage Snapshots
+Snapshot the entire storage (not tied to a single collection):
+
+```php
+$snapshot = Qdrant::storageSnapshots()->create(); // SnapshotDescription
+Qdrant::storageSnapshots()->list();
+Qdrant::storageSnapshots()->delete($snapshot->name);
+Qdrant::storageSnapshots()->download($snapshot->name);
+```
+
+### Shard Snapshots
+Snapshot an individual shard in a distributed deployment:
+
+```php
+$snapshot = Qdrant::collection('plants')->shardSnapshots(shardId: 0)->create(); // SnapshotDescription
+Qdrant::collection('plants')->shardSnapshots(0)->list();
+Qdrant::collection('plants')->shardSnapshots(0)->delete($snapshot->name);
+Qdrant::collection('plants')->shardSnapshots(0)->download($snapshot->name);
+Qdrant::collection('plants')->shardSnapshots(0)->recover('file:///qdrant/snapshots/plants/0/shard.snapshot');
+```
+
+### Cluster Management
+Inspect and manage a distributed Qdrant cluster:
+
+```php
+$status = Qdrant::collection('plants')->cluster()->status(); // ClusterStatus
+Qdrant::collection('plants')->cluster()->telemetry();         // array
+Qdrant::collection('plants')->cluster()->recover();           // bool
+Qdrant::collection('plants')->cluster()->removePeer(peerId: 4, force: false);
+Qdrant::collection('plants')->cluster()->collection();        // array — this collection's cluster info
+Qdrant::collection('plants')->cluster()->moveShard(shardId: 0, fromPeer: 1, toPeer: 2);
+Qdrant::collection('plants')->cluster()->replicateShard(shardId: 0, fromPeer: 1, toPeer: 2);
+```
+
+### Shard Keys
+Manage custom sharding for a collection:
+
+```php
+Qdrant::collection('plants')->shards()->keys();          // array
+Qdrant::collection('plants')->shards()->create('region-eu');
+Qdrant::collection('plants')->shards()->delete('region-eu');
+```
+
+### Issues (Beta)
+Read and clear the server's self-diagnosed issues (a beta Qdrant API):
+
+```php
+Qdrant::issues()->get();   // array
+Qdrant::issues()->clear(); // bool
 ```
 
 ## Artisan Commands
