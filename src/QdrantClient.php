@@ -2,10 +2,17 @@
 namespace Mcpuishor\QdrantLaravel;
 
 use Illuminate\Support\Traits\Macroable;
+use Mcpuishor\QdrantLaravel\Query\BatchUpdate;
+use Mcpuishor\QdrantLaravel\Query\Count;
+use Mcpuishor\QdrantLaravel\Query\Discover;
+use Mcpuishor\QdrantLaravel\Query\Facet;
 use Mcpuishor\QdrantLaravel\Query\Indexes;
+use Mcpuishor\QdrantLaravel\Query\Matrix;
+use Mcpuishor\QdrantLaravel\Query\NamedVectors;
 use Mcpuishor\QdrantLaravel\Query\Payloads;
 use Mcpuishor\QdrantLaravel\Query\Points;
 use Mcpuishor\QdrantLaravel\Query\Recommend;
+use Mcpuishor\QdrantLaravel\Query\Scroll;
 use Mcpuishor\QdrantLaravel\Query\Search;
 use Mcpuishor\QdrantLaravel\Query\Vectors;
 use Mcpuishor\QdrantLaravel\Schema\Alias;
@@ -70,5 +77,80 @@ class QdrantClient
     public function search(int $hnsw_ef = 128, bool $exact = false, int $limit = 10)
     {
         return new Search($this->transport, $this->collection, $hnsw_ef, $exact, $limit);
+    }
+
+    public function recommend(int $hnsw_ef = 128, bool $exact = false, int $limit = 10): Recommend
+    {
+        return new Recommend($this->transport, $this->collection, $hnsw_ef, $exact, $limit);
+    }
+
+    public function count(): Count
+    {
+        return new Count($this->transport, $this->collection);
+    }
+
+    public function scroll(): Scroll
+    {
+        return new Scroll($this->transport, $this->collection);
+    }
+
+    public function batch(): BatchUpdate
+    {
+        return new BatchUpdate($this->transport, $this->collection);
+    }
+
+    public function namedVectors(): NamedVectors
+    {
+        return new NamedVectors($this->transport, $this->collection);
+    }
+
+    public function facet(string $key): Facet
+    {
+        return new Facet($this->transport, $this->collection, $key);
+    }
+
+    public function discover(): Discover
+    {
+        return new Discover($this->transport, $this->collection);
+    }
+
+    public function matrix(): Matrix
+    {
+        return new Matrix($this->transport, $this->collection);
+    }
+
+    public function service(): \Mcpuishor\QdrantLaravel\Service\Service
+    {
+        return new \Mcpuishor\QdrantLaravel\Service\Service($this->transport);
+    }
+
+    public function snapshots(): \Mcpuishor\QdrantLaravel\Snapshots\CollectionSnapshots
+    {
+        return new \Mcpuishor\QdrantLaravel\Snapshots\CollectionSnapshots($this->transport, $this->collection);
+    }
+
+    public function storageSnapshots(): \Mcpuishor\QdrantLaravel\Snapshots\StorageSnapshots
+    {
+        return new \Mcpuishor\QdrantLaravel\Snapshots\StorageSnapshots($this->transport);
+    }
+
+    public function shardSnapshots(int $shardId): \Mcpuishor\QdrantLaravel\Snapshots\ShardSnapshots
+    {
+        return new \Mcpuishor\QdrantLaravel\Snapshots\ShardSnapshots($this->transport, $this->collection, $shardId);
+    }
+
+    public function cluster(): \Mcpuishor\QdrantLaravel\Cluster\Cluster
+    {
+        return new \Mcpuishor\QdrantLaravel\Cluster\Cluster($this->transport, $this->collection);
+    }
+
+    public function shards(): \Mcpuishor\QdrantLaravel\Cluster\Shards
+    {
+        return new \Mcpuishor\QdrantLaravel\Cluster\Shards($this->transport, $this->collection);
+    }
+
+    public function issues(): \Mcpuishor\QdrantLaravel\Issues\Issues
+    {
+        return new \Mcpuishor\QdrantLaravel\Issues\Issues($this->transport);
     }
 }

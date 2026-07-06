@@ -33,7 +33,7 @@ class PointsCollection extends Collection
         })->all();
     }
 
-    public static function make($items = []): self
+    public static function make($items = [], ...$args): self
     {
         return new static($items);
     }

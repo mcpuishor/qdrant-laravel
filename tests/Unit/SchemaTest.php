@@ -14,7 +14,7 @@ beforeEach(function () {
 
     $this->transport
         ->shouldReceive('baseUri')
-        ->passthru();
+        ->andReturnSelf();
 
     Http::fake();
 

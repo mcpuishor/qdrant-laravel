@@ -10,5 +10,6 @@ enum FilterConditions : string
     case GEO_RADIUS = 'geo_radius';
     case VALUES_COUNT = 'values_count';
     case IS_EMPTY = 'is_empty';
+    case IS_NULL = 'is_null';
 
 }

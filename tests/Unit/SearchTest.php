@@ -16,7 +16,7 @@ beforeEach(function () {
     $this->transport = Mockery::mock(QdrantTransport::class);
 
     $this->transport->shouldReceive('baseUri')
-        ->passthru();
+        ->andReturnSelf();
 
     $this->query = new QdrantClient($this->transport, $this->testCollectionName);
     $this->vector = [1, 2, 3];
@@ -81,6 +81,12 @@ it('throws an exception if the search cannot be performed', function () {
 
 it('can add a filter to the search query', function (string $term, FilterConditions $condition, string $value) {
 
+    $expectedCondition = match ($condition) {
+        FilterConditions::MATCH => ["key" => $term, 'match' => ['value' => $value]],
+        FilterConditions::IS_EMPTY => ['is_empty' => ['key' => $term]],
+        default => ["key" => $term, $condition->value => $value],
+    };
+
     $this->transport->shouldReceive('post')
         ->once()
         ->withArgs([
@@ -94,12 +100,7 @@ it('can add a filter to the search query', function (string $term, FilterConditi
                 "limit" => 10,
                 "filter" => [
                    FilterVerbs::MUST->value => [
-                       [
-                            "key" => $term,
-                            $condition->value => [
-                                'value' => $value
-                            ],
-                       ],
+                       $expectedCondition,
                     ]
                 ]
             ]

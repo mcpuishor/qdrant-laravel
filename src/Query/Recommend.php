@@ -3,26 +3,23 @@ namespace Mcpuishor\QdrantLaravel\Query;
 
 use Mcpuishor\QdrantLaravel\Enums\AverageVectorStrategy;
 use Mcpuishor\QdrantLaravel\Exceptions\SearchException;
-use Mcpuishor\QdrantLaravel\Traits\HasFilters;
+use Mcpuishor\QdrantLaravel\PointsCollection;
 
 class Recommend extends Search
 {
-    use HasFilters;
-
     private array $positives = [];
     private array $negatives = [];
     private ?AverageVectorStrategy $strategy = null;
-    private ?string $using = null;
 
     public function positive(array|string|int $ids): self
     {
-        $this->positives = array_merge($this->positives, (array)$ids);
+        $this->positives = array_merge($this->positives, (array) $ids);
         return $this;
     }
 
     public function negative(array|string|int $ids): self
     {
-        $this->negatives = array_merge($this->negatives, (array)$ids);
+        $this->negatives = array_merge($this->negatives, (array) $ids);
         return $this;
     }
 
@@ -32,26 +29,25 @@ class Recommend extends Search
         return $this;
     }
 
-    public function get(): array
+    public function getSearchPayload(): array
     {
-        if ($this->positives) {
-            $this->query['positive'] = $this->positives;
+        if (!$this->positives && !$this->negatives) {
+            throw new SearchException('Recommend requires at least one positive or negative example.');
         }
-
-        if ($this->negatives) {
-            $this->query['negative'] = $this->negatives;
-        }
-
-        $this->query['strategy'] = $this->strategy->value ?? AverageVectorStrategy::default()->value;
 
         $this->query = [
-            'recommend' => $this->query,
+            'recommend' => [
+                'positive' => $this->positives,
+                'negative' => $this->negatives,
+                'strategy' => ($this->strategy ?? AverageVectorStrategy::default())->value,
+            ],
         ];
 
-        if ($this->getFilters()) {
-            $searchPayload['filter'] = $this->getFilters();
-        }
+        return parent::getSearchPayload();
+    }
 
-        return parent::get();
+    public function get(): PointsCollection
+    {
+        return $this->raw($this->getSearchPayload());
     }
 }

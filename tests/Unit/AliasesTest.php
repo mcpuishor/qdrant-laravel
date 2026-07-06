@@ -8,7 +8,6 @@ beforeEach(function () {
     $this->transport = Mockery::mock(QdrantTransport::class);
 
     $this->transport->shouldReceive('baseUri', 'getBaseUri')
-        ->passthru()
         ->andReturnSelf();
 
     $this->query = new QdrantClient($this->transport);
@@ -34,8 +33,8 @@ it('can retrieve all aliases', function () {
 
     $result = $this->query->aliases()->get();
 
-    expect($result)->toBeCollection()
-        ->and($this->transport->getBaseUri())->toBe("");
+    expect($result)->toBeCollection();
+    $this->transport->shouldHaveReceived('baseUri')->with("");
 });
 
 it('can retrieve aliases for a collection', function () {
@@ -59,6 +58,29 @@ it('can retrieve aliases for a collection', function () {
 
     $result = $this->query->collection($testCollection)->aliases()->get();
 
-    expect($result)->toBeCollection()
-        ->and($this->transport->getBaseUri())->toBe("/collections/$testCollection");
+    expect($result)->toBeCollection();
+    $this->transport->shouldHaveReceived('baseUri')->with("/collections/$testCollection");
+});
+
+it('applies alias actions to the correct endpoint with the correct payload', function () {
+    $this->transport->shouldReceive('post')->once()
+        ->withArgs([
+            "",
+            [
+                "actions" => [
+                    [
+                        "create_alias" => [
+                            "collection_name" => "coll1",
+                            "alias_name" => "alias1",
+                        ],
+                    ],
+                ],
+            ],
+        ])
+        ->andReturn(new Response(['status' => 'ok', 'time' => 0.0, 'result' => true]));
+
+    $result = $this->query->aliases()->add('alias1', 'coll1')->apply();
+
+    expect($result)->toBeTrue();
+    $this->transport->shouldHaveReceived('baseUri')->with("/collections/aliases");
 });

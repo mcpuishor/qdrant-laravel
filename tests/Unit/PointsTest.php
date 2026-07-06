@@ -11,7 +11,6 @@ beforeEach(function () {
     $this->testCollectionName = 'test';
     $this->transport = Mockery::mock(QdrantTransport::class);
     $this->transport->shouldReceive('baseUri')
-        ->passthru()
         ->andReturnSelf();
 
     $this->pointsQuery =  (new QdrantClient($this->transport, $this->testCollectionName))

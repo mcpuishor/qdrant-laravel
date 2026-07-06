@@ -60,8 +60,9 @@ class QdrantTransport
 
     public function baseUri(string $baseUri): self
     {
-        $this->baseUri = $baseUri;
-        return $this;
+        $clone = clone $this;
+        $clone->baseUri = $baseUri;
+        return $clone;
     }
 
     public function post($uri, array $options = []): Response
@@ -71,7 +72,7 @@ class QdrantTransport
                 data: $options
             );
 
-        return new Response( $response->json(), true);
+        return new Response($response->json() ?? []);
     }
 
     public function get($uri): Response
@@ -80,7 +81,7 @@ class QdrantTransport
                 url:$this->baseUri . $uri
             );
 
-        return new Response( $response->json(), true );
+        return new Response($response->json() ?? []);
     }
 
     public function put($uri, array $options = []): Response
@@ -98,7 +99,7 @@ class QdrantTransport
             );
         }
 
-        return new Response( $response->json(), true );
+        return new Response($response->json() ?? []);
     }
 
     public function delete($uri, array $options = []): Response
@@ -113,7 +114,7 @@ class QdrantTransport
                 url:$this->baseUri . $uri
             );
         }
-        return new Response( json_decode($response->json(), true) );
+        return new Response($response->json() ?? []);
     }
 
     public function patch(string $uri, array $options = []): Response
@@ -123,7 +124,7 @@ class QdrantTransport
             data: $options
         );
 
-        return new Response( json_decode($response->json(), true) );
+        return new Response($response->json() ?? []);
     }
 
     public function collection(?string $name = null): QdrantClient
@@ -137,5 +138,15 @@ class QdrantTransport
     public function getBaseUri()
     {
         return $this->baseUri;
+    }
+
+    public function raw(string $uri): string
+    {
+        return $this->httpClient->get(url: $this->baseUri . $uri)->body();
+    }
+
+    public function download(string $uri): \Illuminate\Http\Client\Response
+    {
+        return $this->httpClient->withOptions(['stream' => true])->get(url: $this->baseUri . $uri);
     }
 }

@@ -12,7 +12,7 @@ it('can retrieve the information about a collection', function ($infoResult) {
 
     $transport
         ->shouldReceive('baseUri')
-        ->passthru();
+        ->andReturnSelf();
 
     $transport->shouldReceive('get')
         ->once()
