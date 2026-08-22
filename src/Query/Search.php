@@ -52,6 +52,14 @@ class Search
         return $this;
     }
 
+    public function paginated(int $page = 0, int $perPage = 50): PointsCollection
+    {
+        return $this
+            ->offset($page * $perPage)
+            ->limit($perPage)
+            ->get();
+    }
+
     public function limit(int $limit): self
     {
         if ($limit < 1) {

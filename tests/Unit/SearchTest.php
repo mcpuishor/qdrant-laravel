@@ -435,3 +435,29 @@ it('can use a different vector than the default one', function(){
     expect($result)->toBeInstanceOf(PointsCollection::class)
         ->toHaveCount(3);
 });
+
+it('can paginate results', function(){
+    $page = 2;
+    $perPage = 10;
+
+    $this->transport->shouldReceive('post')
+        ->withArgs([
+            "",
+            [
+                "query" => $this->vector,
+                "params" => [
+                    "hnsw_ef" => 128,
+                    "exact" => false,
+                ],
+                "limit" => $perPage,
+                "offset" => $page * $perPage,
+            ]
+        ])->andReturn($this->validResponse);
+
+    $result = $this->query->search()
+        ->vector($this->vector)
+        ->paginated($page, $perPage);
+
+    expect($result)->toBeInstanceOf(PointsCollection::class)
+        ->toHaveCount(3);
+});
