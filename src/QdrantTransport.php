@@ -62,6 +62,7 @@ class QdrantTransport
     {
         $clone = clone $this;
         $clone->baseUri = $baseUri;
+        $clone->httpClient = clone $this->httpClient;
         return $clone;
     }
 
